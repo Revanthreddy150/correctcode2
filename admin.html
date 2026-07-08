@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Master Controls Administration Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-6 font-sans">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="flex flex-col md:flex-row justify-between items-center border-b border-slate-800 pb-5 mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-blue-400 tracking-tight">The Quick Helping Partner</h1>
+                <p class="text-xs text-slate-400 mt-0.5 uppercase tracking-widest font-bold">Comprehensive Global Operations Hub</p>
+            </div>
+            <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700 gap-1 text-xs font-bold uppercase">
+                <button id="w1-btn" class="px-3 py-2 rounded-lg bg-blue-600 text-white cursor-pointer">W1: Users</button>
+                <button id="w2-btn" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white cursor-pointer">W2: Verification Requests</button>
+                <button id="w3-btn" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white cursor-pointer">W3: Shop Items</button>
+                <button id="w4-btn" class="px-3 py-2 rounded-lg text-slate-400 hover:text-white cursor-pointer">W4: Partner Agents</button>
+            </div>
+        </header>
+
+        <div id="panel-w1" class="space-y-4">
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-750 text-slate-400 font-bold uppercase border-b border-slate-700"><th class="p-4">UID Mapping Key</th><th class="p-4">Name</th><th class="p-4">Email</th><th class="p-4">Phone Contact</th><th class="p-4">Identity Status</th><th class="p-4 text-center">Actions</th></tr>
+                    </thead>
+                    <tbody id="w1-tbody" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="panel-w2" class="hidden space-y-4">
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-750 text-slate-400 font-bold uppercase border-b border-slate-700"><th class="p-4">Applicant UID</th><th class="p-4">Email</th><th class="p-4">Identity Document Number</th><th class="p-4">Name on Card</th><th class="p-4">Date of Birth</th><th class="p-4 text-center">Controls</th></tr>
+                    </thead>
+                    <tbody id="w2-tbody" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="panel-w3" class="hidden space-y-6">
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                <div class="p-4 border-b border-slate-700 bg-slate-750"><h3 class="font-bold text-slate-200 uppercase text-xs tracking-wider">Incoming New Shop/Inventory Review Requests</h3></div>
+                <div id="shop-requests-cards-container" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                <div class="p-4 border-b border-slate-700 bg-slate-750"><h3 class="font-bold text-slate-200 uppercase text-xs tracking-wider">Live Active Network Shops Directory</h3></div>
+                <div id="live-shops-cards-container" class="p-4 grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+        </div>
+
+        <div id="panel-w4" class="hidden space-y-4">
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-2xl">
+                <div class="p-4 border-b border-slate-700 bg-slate-750"><h3 class="font-bold text-slate-200 uppercase text-xs tracking-wider">Pending Agent Applications (Identity/PAN/DL)</h3></div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-750 text-slate-400 font-bold uppercase border-b border-slate-700">
+                                <th class="p-4">Agent UID</th><th class="p-4">Name (Age)</th><th class="p-4">Contact Detail</th><th class="p-4">Identity Card</th><th class="p-4">PAN Card</th><th class="p-4">Driving Licence</th><th class="p-4 text-center">Review Decision</th>
+                            </tr>
+                        </thead>
+                        <tbody id="w4-tbody" class="divide-y divide-slate-700 text-slate-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, remove, update, set, get, child, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const userFirebaseConfig = {
+            apiKey: "AIzaSyDGI7b17RRfpgctXIVIgPtyECtUBLEcMAU",
+            authDomain: "skill-bc495.firebaseapp.com",
+            databaseURL: "https://skill-bc495-default-rtdb.firebaseio.com",
+            projectId: "skill-bc495"
+        };
+
+        const partnerFirebaseConfig = {
+            apiKey: "AIzaSyA1QeDf1E_Kb1ZC15ahw1dY8hk3J0gXopY",
+            databaseURL: "https://thodu-65cb9-default-rtdb.firebaseio.com",
+        };
+
+        const userApp = initializeApp(userFirebaseConfig, "userProject");
+        const partnerApp = initializeApp(partnerFirebaseConfig, "partnerProject");
+
+        const userDb = getDatabase(userApp);
+        const partnerDb = getDatabase(partnerApp);
+
+        const buttonsArray = [document.getElementById('w1-btn'), document.getElementById('w2-btn'), document.getElementById('w3-btn'), document.getElementById('w4-btn')];
+        const panelsArray = [document.getElementById('panel-w1'), document.getElementById('panel-w2'), document.getElementById('panel-w3'), document.getElementById('panel-w4')];
+
+        buttonsArray.forEach((btn, idx) => {
+            btn.addEventListener('click', () => {
+                buttonsArray.forEach(b => b.className = "px-3 py-2 rounded-lg text-slate-400 hover:text-white cursor-pointer");
+                panelsArray.forEach(p => p.classList.add('hidden'));
+                btn.className = "px-3 py-2 rounded-lg bg-blue-600 text-white cursor-pointer";
+                panelsArray[idx].classList.remove('hidden');
+            });
+        });
+
+        // W1: USERS LIVE MONITOR
+        onValue(ref(userDb, 'users'), (snapshot) => {
+            const tbody = document.getElementById('w1-tbody'); tbody.innerHTML = ""; if (!snapshot.exists()) return;
+            Object.values(snapshot.val()).forEach(u => {
+                const tr = document.createElement('tr'); tr.className = "hover:bg-slate-750/30 border-b border-slate-800 text-slate-200";
+                tr.innerHTML = `<td class="p-4 font-mono text-blue-400">${u.uid}</td><td class="p-4 text-white font-bold">${u.name || 'N/A'}</td><td class="p-4">${u.email}</td><td class="p-4 font-mono">${u.phone || 'N/A'}</td><td class="p-4 font-bold text-amber-400">${u.identityStatus || 'Unverified'}</td><td class="p-4 text-center"><button class="btn-erase bg-red-950 text-red-400 text-[11px] px-3 py-1 rounded-lg font-bold hover:bg-red-600 hover:text-white cursor-pointer" data-uid="${u.uid}">Erase User</button></td>`;
+                tbody.appendChild(tr);
+            });
+            document.querySelectorAll('.btn-erase').forEach(b => b.addEventListener('click', async (e) => {
+                const uid = e.target.getAttribute('data-uid');
+                if (confirm("Wipe this account footprint?")) { await remove(ref(userDb, `users/${uid}`)); await remove(ref(userDb, `verification_requests/${uid}`)); }
+            }));
+        });
+
+        // W2: USER ACCESS VERIFICATION
+        onValue(ref(userDb, 'verification_requests'), (snapshot) => {
+            const tbody = document.getElementById('w2-tbody'); tbody.innerHTML = ""; if (!snapshot.exists()) return;
+            Object.values(snapshot.val()).forEach(r => {
+                const tr = document.createElement('tr'); tr.className = "border-b border-slate-800";
+                tr.innerHTML = `<td class="p-4 font-mono text-blue-400">${r.uid}</td><td class="p-4">${r.email}</td><td class="p-4 font-mono text-slate-300 font-bold">${r.identityNumber}</td><td class="p-4 text-white font-bold">${r.nameAsPerDocument}</td><td class="p-4 font-mono">${r.dobAsPerDocument}</td><td class="p-4 text-center space-x-2"><button class="btn-u-ok bg-green-950 text-green-400 px-2 py-1 rounded font-bold cursor-pointer" data-uid="${r.uid}">Accept</button><button class="btn-u-no bg-red-950 text-red-400 px-2 py-1 rounded font-bold cursor-pointer" data-uid="${r.uid}">Reject</button></td>`;
+                tbody.appendChild(tr);
+            });
+            document.querySelectorAll('.btn-u-ok').forEach(b => b.addEventListener('click', async (e) => { const uid = e.target.getAttribute('data-uid'); await update(ref(userDb, `users/${uid}`), { identityStatus: "Verified" }); await remove(ref(userDb, `verification_requests/${uid}`)); }));
+            document.querySelectorAll('.btn-u-no').forEach(b => b.addEventListener('click', async (e) => { const uid = e.target.getAttribute('data-uid'); await update(ref(userDb, `users/${uid}`), { identityStatus: "Rejected" }); await remove(ref(userDb, `verification_requests/${uid}`)); }));
+        });
+
+        // W3: RESTARUNT APPROVALS + COVER INJECTIONS
+        onValue(ref(userDb, 'shop_requests'), (snapshot) => {
+            const container = document.getElementById('shop-requests-cards-container'); container.innerHTML = ""; if (!snapshot.exists()) return;
+            Object.values(snapshot.val()).forEach(req => {
+                const div = document.createElement('div'); div.className = "bg-slate-850 p-5 rounded-2xl border border-slate-700 space-y-3 text-xs";
+                let itemsInputHtml = "";
+                req.items.forEach((item, idx) => {
+                    itemsInputHtml += `<div class="flex justify-between py-1 border-b border-slate-700 items-center"><span class="font-bold text-white">${item.title} (₹${item.price})</span><input type="text" value="${item.imgUrl || ''}" placeholder="Paste Item Image URL" class="bg-slate-900 p-1 rounded text-slate-300 w-40 img-link-input" data-idx="${idx}"></div>`;
+                });
+                div.innerHTML = `<div><h4 class="font-black text-blue-400 text-sm">${req.shopName}</h4><p class="text-slate-400 font-medium">Owner Identity: ${req.ownerName} (UID: ${req.uid})</p></div><div class="space-y-1">${itemsInputHtml}</div><input type="text" value="${req.shopImgUrl || ''}" placeholder="Paste Cover Banner Image" class="w-full bg-slate-900 border border-slate-700 p-2 rounded-xl mt-2 main-banner-input"><button class="btn-approve-shop w-full mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg cursor-pointer" data-uid="${req.uid}">Approve Restaurant Changes</button>`;
+                container.appendChild(div);
+            });
+            
+            document.querySelectorAll('.btn-approve-shop').forEach(b => b.addEventListener('click', async (e) => {
+                const uid = e.target.getAttribute('data-uid'); 
+                const snap = await get(child(ref(userDb), `shop_requests/${uid}`)); if (!snap.exists()) return;
+                
+                const obj = snap.val(); const parent = e.target.parentElement;
+                parent.querySelectorAll('.img-link-input').forEach(inp => { obj.items[parseInt(inp.getAttribute('data-idx'))].imgUrl = inp.value.trim(); });
+                obj.shopImgUrl = parent.querySelector('.main-banner-input').value.trim(); 
+                obj.status = "Approved";
+                
+                // Save to public directory and remove from moderation queue
+                await set(ref(userDb, 'approved_shops/' + uid), obj); 
+                await remove(ref(userDb, `shop_requests/${uid}`));
+                
+                // FIXED: Dispatches alert payload directly to the store creator's tray bell (🔔)
+                const notiRef = push(ref(userDb, `notifications/${uid}`));
+                await set(notiRef, {
+                    title: "Restaurant Approved Live! 🎉",
+                    body: `Your shop [${obj.shopName}] menu configurations have been vetted and approved successfully.`,
+                    timestamp: Date.now()
+                });
+                alert("Shop directory updated and notification broadcasted!");
+            }));
+        });
+
+        // W4: AGENT ONBOARDING CHECKS
+        onValue(ref(partnerDb, 'partner_verification_requests'), (snapshot) => {
+            const tbody = document.getElementById('w4-tbody'); tbody.innerHTML = "";
+            if (!snapshot.exists()) { tbody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-slate-500">No applications pending review.</td></tr>`; return; }
+            Object.values(snapshot.val()).forEach(req => {
+                const tr = document.createElement('tr'); tr.className = "hover:bg-slate-750/30 border-b border-slate-800 text-xs";
+                tr.innerHTML = `<td class="p-4 font-mono text-blue-400 select-all">${req.uid}</td><td class="p-4 font-bold text-white">${req.name} (${req.age || 'N/A'})</td><td class="p-4 font-mono text-slate-300">${req.phone}<br><span class="text-slate-500 font-sans">${req.email}</span></td><td class="p-4 font-mono font-semibold text-slate-300">${req.identityCard}</td><td class="p-4 font-mono text-slate-400 uppercase">${req.pan || 'N/A'}</td><td class="p-4 font-mono text-slate-400 uppercase">${req.drivingLicence || 'N/A'}</td><td class="p-4 text-center space-x-1 whitespace-nowrap"><button class="btn-p-ok bg-green-950 text-green-400 px-2 py-1 rounded font-bold cursor-pointer hover:bg-green-600 hover:text-white" data-uid="${req.uid}">Verify Agent</button><button class="btn-p-no bg-red-950 text-red-400 px-2 py-1 rounded font-bold cursor-pointer hover:bg-red-600 hover:text-white" data-uid="${req.uid}">Reject</button></td>`;
+                tbody.appendChild(tr);
+            });
+            document.querySelectorAll('.btn-p-ok').forEach(b => b.addEventListener('click', async (e) => { const uid = e.target.getAttribute('data-uid'); await update(ref(partnerDb, `partners/${uid}`), { verificationStatus: "Verified" }); await remove(ref(partnerDb, `partner_verification_requests/${uid}`)); alert("Agent status sets to Verified successfully!"); }));
+            document.querySelectorAll('.btn-p-no').forEach(b => b.addEventListener('click', async (e) => { const uid = e.target.getAttribute('data-uid'); await update(ref(partnerDb, `partners/${uid}`), { verificationStatus: "Rejected" }); await remove(ref(partnerDb, `partner_verification_requests/${uid}`)); }));
+        });
+
+        // LIVE NETWORK VIEW TRACKER DIRECTORY
+        onValue(ref(userDb, 'approved_shops'), (snapshot) => {
+            const box = document.getElementById('live-shops-cards-container'); box.innerHTML = ""; if (!snapshot.exists()) return;
+            Object.values(snapshot.val()).forEach(s => {
+                const card = document.createElement('div'); card.className = "p-4 bg-slate-850 border border-slate-700 rounded-xl space-y-2 text-xs text-slate-300";
+                let editHtml = "";
+                s.items.forEach((item, idx) => {
+                    editHtml += `<div class="flex gap-2 py-1 items-center border-b border-slate-700"><input type="text" value="${item.title}" class="bg-slate-900 border px-1 rounded w-24 edit-item-title" data-idx="${idx}"><input type="text" value="${item.price}" class="bg-slate-900 border px-1 rounded w-16 text-center edit-item-price" data-idx="${idx}"><input type="text" value="${item.imgUrl || ''}" class="bg-slate-900 border px-1 rounded flex-1 edit-item-img" data-idx="${idx}"></div>`;
+                });
+                card.innerHTML = `<div class="flex justify-between items-center border-b border-slate-700 pb-2"><input type="text" value="${s.shopName}" class="bg-slate-900 font-bold text-sm text-emerald-400 border rounded px-1 edit-shop-name"><button class="btn-save-shop-edit bg-blue-600 text-white px-2 py-0.5 rounded shadow cursor-pointer" data-uid="${s.uid}">Save Directory Changes</button></div><div class="space-y-1">${editHtml}</div>`;
+                box.appendChild(card);
+            });
+            document.querySelectorAll('.btn-save-shop-edit').forEach(b => b.addEventListener('click', async (e) => {
+                const uid = e.target.getAttribute('data-uid'); const parent = e.target.parentElement.parentElement;
+                const snap = await get(child(ref(userDb), `approved_shops/${uid}`)); if (!snap.exists()) return;
+                const shopObj = snap.val(); shopObj.shopName = parent.querySelector('.edit-shop-name').value.trim();
+                const titles = parent.querySelectorAll('.edit-item-title'); const prices = parent.querySelectorAll('.edit-item-price'); const imgs = parent.querySelectorAll('.edit-item-img');
+                titles.forEach((tInp, i) => { const idx = parseInt(tInp.getAttribute('data-idx')); shopObj.items[idx].title = tInp.value.trim(); shopObj.items[idx].price = prices[i].value.trim(); shopObj.items[idx].imgUrl = imgs[i].value.trim(); });
+                await set(ref(userDb, 'approved_shops/' + uid), shopObj); alert("Saved!");
+            }));
+        });
+    </script>
+</body>
+</html>

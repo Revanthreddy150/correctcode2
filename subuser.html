@@ -26,23 +26,27 @@
 </head>
 <body class="bg-slate-50 text-slate-800 p-4 font-sans min-h-screen relative pb-24">
 
-    <!-- Accessible High-Contrast Navigation Bar -->
-    <div class="flex items-center justify-between gap-2 p-2 bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 max-w-2xl mx-auto">
-        <button id="tab-grocery-btn" class="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-blue-600 text-white shadow-md">
-            <span class="text-xl sm:text-2xl">🛒</span>
-            <span>Food & Grocery</span>
-        </button>
-        <button id="tab-helps-btn" class="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200">
-            <span class="text-xl sm:text-2xl">🆘</span>
-            <span>Helps Feed</span>
-        </button>
-        <button id="tab-orders-btn" class="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200">
-            <span class="text-xl sm:text-2xl">📦</span>
-            <span>My Orders</span>
-        </button>
+    <div class="max-w-xl mx-auto mb-6">
+        <div class="flex items-center bg-white p-1.5 rounded-full shadow-sm border border-slate-200/60 divide-x divide-slate-100">
+            
+            <button id="tab-grocery-btn" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black">
+                <span class="text-xl mb-0.5">🛒</span>
+                <span class="text-xs sm:text-sm tracking-wide">Food & Grocery</span>
+            </button>
+            
+            <button id="tab-helps-btn" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
+                <span class="text-xl mb-0.5">🆘</span>
+                <span class="text-xs sm:text-sm tracking-wide">Helps Feed</span>
+            </button>
+            
+            <button id="tab-orders-btn" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
+                <span class="text-xl mb-0.5">📦</span>
+                <span class="text-xs sm:text-sm tracking-wide">My Orders</span>
+            </button>
+
+        </div>
     </div>
 
-    <!-- Live Dynamic Tabs View Channels -->
     <div id="view-grocery" class="space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div></div>
     <div id="view-helps" class="hidden space-y-4"><div id="helps-feed-output" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
     
@@ -51,7 +55,7 @@
         <div id="orders-feed-output" class="space-y-3"></div>
     </div>
 
-    <!-- Centered Operational Message Notification Alert Overlay Box -->
+    <div id="view-alerts-wrapper" class="hidden text-center max-w-xs sm:max-w-md border border-white/10"></div>
     <div id="center-toast-overlay" class="hidden fixed inset-0 z-[250] pointer-events-none flex items-center justify-center p-4">
         <div id="center-toast-box" class="bg-slate-900/95 text-white backdrop-blur-md font-bold text-center px-6 py-4 rounded-2xl shadow-2xl max-w-xs sm:max-w-md transform transition-all duration-300 scale-95 opacity-0 flex flex-col items-center gap-2 border border-white/10">
             <span id="center-toast-icon" class="text-3xl">✨</span>
@@ -148,7 +152,7 @@
                 <input type="text" id="help-fullname" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-semibold" placeholder="Your Full Name">
                 
                 <div id="trigger-help-map-fs" class="h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition">
-                    <span class="text-xl">AM bulance 🚑</span>
+                    <span class="text-xl">🚑</span>
                     <span class="text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>
                     <span class="text-[10px] text-slate-400">Required to pinpoint location coordinates</span>
                 </div>
@@ -236,17 +240,17 @@
         });
         document.getElementById('btn-close-cart-modal').addEventListener('click', () => document.getElementById('cart-checkout-modal').classList.add('hidden'));
 
+        // --- UPDATED PILL TRANSITION SELECTORS ---
         function switchTab(t) {
             currentActiveViewTab = t;
             ['grocery', 'helps', 'orders'].forEach(v => {
-                document.getElementById(`tab-${v}-btn`).className = "flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-slate-100 text-slate-600";
+                document.getElementById(`tab-${v}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold";
                 document.getElementById(`view-${v}`).classList.add('hidden');
             });
-            document.getElementById(`tab-${t}-btn`).className = "flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-blue-600 text-white shadow-md";
+            document.getElementById(`tab-${t}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black";
             document.getElementById(`view-${t}`).classList.remove('hidden');
         }
 
-        // --- NEW MID SCREEN ALERT DISPATCH NOTIFIER ---
         function displayCenterScreenToast(message, emojiIcon = "✨") {
             const overlay = document.getElementById('center-toast-overlay');
             const box = document.getElementById('center-toast-box');
@@ -262,7 +266,7 @@
             setTimeout(() => {
                 box.classList.remove('scale-100', 'opacity-100');
                 box.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
+                setTimeout(() => { overlay.classList.add('hidden'); }, 300);
             }, 3000);
         }
 
@@ -271,7 +275,6 @@
             
             document.getElementById('action-modal-overlay').classList.remove('hidden');
             document.getElementById('form-tab-header').classList.add('hidden');
-            initializeFormMaps();
 
             if (currentActiveViewTab === "grocery") {
                 document.getElementById('form-shop-block').classList.remove('hidden'); 
@@ -402,7 +405,6 @@
                 document.getElementById('help-desc').value = "";
                 document.getElementById('action-modal-overlay').classList.add('hidden');
                 
-                // --- NEW HELPS TIMEOUT MID SCREEN TEXT ALERT ---
                 displayCenterScreenToast("Your help request is active. Wait for the agent to accept your help.", "⏳");
                 switchTab('orders');
             })
@@ -463,7 +465,6 @@
             document.querySelectorAll('.btn-trigger-edit-shop').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); prepareShopFormLayoutUI("edit", snapshot.val()[btn.getAttribute('data-uid')]); document.getElementById('action-modal-overlay').classList.remove('hidden'); document.getElementById('form-shop-block').classList.remove('hidden'); document.getElementById('form-help-block').classList.add('hidden'); });
         });
 
-        // --- NEW: DYNAMIC MODAL RE-RENDER ENGINE SUPPORTING INLINE - / + OPTIONS ---
         function openShopDetailsModal(shop) {
             currentlyOpenShopObject = shop;
             document.getElementById('modal-shop-name').innerText = shop.shopName;
@@ -479,10 +480,10 @@
             currentlyOpenShopObject.items.forEach((item, index) => {
                 const div = document.createElement('div'); div.className = "bg-slate-50 rounded-2xl p-3 border border-slate-100 flex flex-col justify-between space-y-2";
                 
-                // Locate item status inside local basket matrix
                 const cartMatch = activeCart.find(i => i.title === item.title && i.shopUid === currentlyOpenShopObject.uid);
                 let buttonInteractiveMarkup = "";
 
+                // --- INLINE - AND + QUANTITY QUANTITY SELECTOR GATES ---
                 if (cartMatch) {
                     buttonInteractiveMarkup = `
                         <div class="flex items-center justify-between bg-slate-900 rounded-xl p-1 text-white text-xs font-black">
@@ -498,7 +499,6 @@
                 grid.appendChild(div);
             });
 
-            // Re-bind inline actions dynamically
             document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
                 btn.onclick = (e) => {
                     const t = e.target.getAttribute('data-title');
@@ -506,8 +506,9 @@
                     const sUid = e.target.getAttribute('data-shopuid');
                     const sName = e.target.getAttribute('data-shopname');
                     addItemToCartArray(t, p, sUid, sName);
+                    
                     displayCenterScreenToast("The item is added to the kart", "🛒");
-                    renderShopModalItemsGrid(); // redraw controls instantly
+                    renderShopModalItemsGrid(); 
                 };
             });
 
@@ -578,8 +579,8 @@
                 wrap.appendChild(row);
             });
             document.getElementById('cart-grand-total').innerText = `₹${total}`;
-            document.querySelectorAll('.btn-cart-minus').forEach(b => b.onclick = (e) => { const idx = parseInt(e.target.getAttribute('data-idx')); if(activeCart[idx].qty > 1) activeCart[idx].qty--; else activeCart.splice(idx, 1); renderCartInterfaceView(); updateFloatingCartBadgeStateCount(); });
-            document.querySelectorAll('.btn-cart-plus').forEach(b => b.onclick = (e) => { activeCart[parseInt(e.target.getAttribute('data-idx'))].qty++; renderCartInterfaceView(); updateFloatingCartBadgeStateCount(); });
+            document.querySelectorAll('.btn-cart-minus').forEach(b => b.onclick = (e) => { const idx = parseInt(e.target.getAttribute('data-idx')); if(activeCart[idx].qty > 1) activeCart[idx].qty--; else activeCart.splice(idx, 1); renderCartInterfaceView(); updateFloatingCartBadgeStateCount(); if(currentlyOpenShopObject) renderShopModalItemsGrid(); });
+            document.querySelectorAll('.btn-cart-plus').forEach(b => b.onclick = (e) => { activeCart[parseInt(e.target.getAttribute('data-idx'))].qty++; renderCartInterfaceView(); updateFloatingCartBadgeStateCount(); if(currentlyOpenShopObject) renderShopModalItemsGrid(); });
         }
 
         function triggerAnimatedGreenSuccessTickOverlayGate() {

@@ -213,7 +213,9 @@
         const profileSavedAddress = params.get('savedAddress') ? decodeURIComponent(params.get('savedAddress')) : "";
         const userContactPhone = params.get('phone') ? decodeURIComponent(params.get('phone')) : "";
 
+        // --- DECLARED MISSING CHECKOUT MAP VARIABLES GLOBALLY ---
         let globalFsMapInstance = null, globalFsMarkerInstance = null, targetCoordFieldId = null, currentlyOpenShopObject = null;
+        let mapCartCheckout = null, markerCartCheckout = null; 
         let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "grocery";
 
         const mapTileProviderUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
@@ -240,7 +242,6 @@
         });
         document.getElementById('btn-close-cart-modal').addEventListener('click', () => document.getElementById('cart-checkout-modal').classList.add('hidden'));
 
-        // --- UPDATED PILL TRANSITION SELECTORS ---
         function switchTab(t) {
             currentActiveViewTab = t;
             ['grocery', 'helps', 'orders'].forEach(v => {
@@ -483,7 +484,6 @@
                 const cartMatch = activeCart.find(i => i.title === item.title && i.shopUid === currentlyOpenShopObject.uid);
                 let buttonInteractiveMarkup = "";
 
-                // --- INLINE - AND + QUANTITY QUANTITY SELECTOR GATES ---
                 if (cartMatch) {
                     buttonInteractiveMarkup = `
                         <div class="flex items-center justify-between bg-slate-900 rounded-xl p-1 text-white text-xs font-black">
@@ -536,6 +536,7 @@
             });
         }
 
+        // --- FIXED: INITIALIZE MAP PROPERLY AND CALL INVALIDATESIZE FOR CONTAINER LAYOUT RESET ---
         function initializeCartCheckoutDeliveryMap() {
             setTimeout(() => {
                 if (!mapCartCheckout) {
@@ -543,10 +544,17 @@
                     L.tileLayer(mapTileProviderUrl).addTo(mapCartCheckout);
                     markerCartCheckout = L.marker([centerLat, centerLng]).addTo(mapCartCheckout);
                     document.getElementById('cart-selected-coords').value = `${centerLat}, ${centerLng}`;
-                    mapCartCheckout.on('click', (e) => { markerCartCheckout.setLatLng(e.latlng); document.getElementById('cart-selected-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });
+                    
+                    mapCartCheckout.on('click', (e) => { 
+                        markerCartCheckout.setLatLng(e.latlng); 
+                        document.getElementById('cart-selected-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; 
+                    });
                 } else {
-                    mapCartCheckout.setView([centerLat, centerLng], 16); markerCartCheckout.setLatLng([centerLat, centerLng]); mapCartCheckout.invalidateSize();
+                    mapCartCheckout.setView([centerLat, centerLng], 16); 
+                    markerCartCheckout.setLatLng([centerLat, centerLng]);
                 }
+                // Always call invalidateSize() when opening the container to avoid gray/misaligned tiles
+                mapCartCheckout.invalidateSize();
             }, 250);
         }
 

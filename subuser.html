@@ -109,7 +109,7 @@
         <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl relative border max-h-[90vh] overflow-y-auto">
             <button id="btn-close-action-modal" class="absolute top-4 right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
             
-            <div id="form-tab-header" class="flex border-b pb-2 mb-4 space-x-4 text-sm font-bold">
+            <div id="form-tab-header" class="hidden flex border-b pb-2 mb-4 space-x-4 text-sm font-bold">
                 <button id="form-help-tab" class="text-blue-600 border-b-2 border-blue-600 pb-1">Request Help</button>
                 <button id="form-shop-tab" class="text-slate-400 pb-1">Register Restaurant / Shop</button>
             </div>
@@ -173,6 +173,9 @@
         let markerHelp = null, markerShop = null, markerCartCheckout = null;
         let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "helps";
 
+        // Clean CartoDB Free Clean Tilesets
+        const mapTileProviderUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+
         if(userName && document.getElementById('help-fullname')) {
             document.getElementById('help-fullname').value = userName;
         }
@@ -205,12 +208,11 @@
             document.getElementById(`view-${t}`).classList.remove('hidden');
         }
 
-        // --- FIXED: CONTEXT-AWARE FLOATING BUTTON ROUTER ---
         document.getElementById('btn-floating-action').addEventListener('click', () => {
             if (userAadharStatus !== "Verified") { alert(`Verification Pending. Account status state: ${userAadharStatus}`); return; }
             
             document.getElementById('action-modal-overlay').classList.remove('hidden');
-            document.getElementById('form-tab-header').classList.add('hidden'); // Hide master tabs to prevent multi-form switches
+            document.getElementById('form-tab-header').classList.add('hidden');
             initializeFormMaps();
 
             if (currentActiveViewTab === "grocery") {
@@ -245,7 +247,6 @@
 
         document.getElementById('btn-close-action-modal').addEventListener('click', () => {
             document.getElementById('action-modal-overlay').classList.add('hidden');
-            // Safely shrink map containers if modal closed while tracking fullscreen
             document.getElementById('map-help-box').className = "map-normal-size bg-slate-100 cursor-crosshair relative";
             document.getElementById('map-shop-box').className = "map-normal-size bg-slate-100 cursor-crosshair relative";
         });
@@ -269,7 +270,7 @@
             document.querySelectorAll('.btn-remove-subitem').forEach(b => b.onclick = () => { currentShopItems.splice(parseInt(b.getAttribute('data-idx')), 1); rebuildItemsListDOMUI(); });
         }
 
-        // --- FIXED: INTERACTIVE FULLSCREEN TOGGLE MAP INITIALIZATION ENGINE ---
+        // --- FIXED: AUTO-INVALIDATE FULLSCREEN MAP MANAGER ---
         function initializeFormMaps() {
             setTimeout(() => {
                 const boxHelp = document.getElementById('map-help-box');
@@ -277,62 +278,62 @@
 
                 if (!mapHelp) {
                     mapHelp = L.map('map-help-box').setView([centerLat, centerLng], 15); 
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapHelp);
+                    L.tileLayer(mapTileProviderUrl).addTo(mapHelp);
                     markerHelp = L.marker([centerLat, centerLng]).addTo(mapHelp);
                     document.getElementById('help-coords').value = `${centerLat}, ${centerLng}`;
                     
-                    // Click Map Element to make it full screen
                     boxHelp.addEventListener('click', (e) => {
                         if (!boxHelp.classList.contains('map-fullscreen-size')) {
                             boxHelp.className = "map-fullscreen-size";
-                            mapHelp.invalidateSize();
+                            // FIXED: Forces tile reload matching new container layout instantly
+                            setTimeout(() => { mapHelp.invalidateSize(); }, 50); 
                         }
                     });
 
-                    // Handle location picking events
                     mapHelp.on('click', (e) => {
                         markerHelp.setLatLng(e.latlng); 
                         document.getElementById('help-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`;
                         
-                        // Immediately minimize once point is logged safely
-                        if (boxHelp.className === "map-fullscreen-size") {
+                        if (boxHelp.classList.contains('map-fullscreen-size')) {
                             setTimeout(() => {
                                 boxHelp.className = "map-normal-size bg-slate-100 cursor-crosshair relative";
                                 mapHelp.invalidateSize();
                                 mapHelp.setView(e.latlng, 15);
-                            }, 150);
+                            }, 100);
                         }
                     });
+                } else {
+                    mapHelp.invalidateSize();
                 }
                 
                 if (!mapShop) {
                     mapShop = L.map('map-shop-box').setView([centerLat, centerLng], 15); 
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapShop);
+                    L.tileLayer(mapTileProviderUrl).addTo(mapShop);
                     markerShop = L.marker([centerLat, centerLng]).addTo(mapShop);
                     document.getElementById('shop-coords').value = `${centerLat}, ${centerLng}`;
                     
-                    // Click Map Element to make it full screen
                     boxShop.addEventListener('click', (e) => {
                         if (!boxShop.classList.contains('map-fullscreen-size')) {
                             boxShop.className = "map-fullscreen-size";
-                            mapShop.invalidateSize();
+                            // FIXED: Forces tile reload matching new container layout instantly
+                            setTimeout(() => { mapShop.invalidateSize(); }, 50);
                         }
                     });
 
-                    // Handle location picking events
                     mapShop.on('click', (e) => {
                         markerShop.setLatLng(e.latlng); 
                         document.getElementById('shop-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`;
                         
-                        // Immediately minimize once point is logged safely
-                        if (boxShop.className === "map-fullscreen-size") {
+                        if (boxShop.classList.contains('map-fullscreen-size')) {
                             setTimeout(() => {
                                 boxShop.className = "map-normal-size bg-slate-100 cursor-crosshair relative";
                                 mapShop.invalidateSize();
                                 mapShop.setView(e.latlng, 15);
-                            }, 150);
+                            }, 100);
                         }
                     });
+                } else {
+                    mapShop.invalidateSize();
                 }
             }, 200);
         }
@@ -445,7 +446,7 @@
             setTimeout(() => {
                 if (!mapCartCheckout) {
                     mapCartCheckout = L.map('cart-checkout-map').setView([centerLat, centerLng], 16);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapCartCheckout);
+                    L.tileLayer(mapTileProviderUrl).addTo(mapCartCheckout);
                     markerCartCheckout = L.marker([centerLat, centerLng]).addTo(mapCartCheckout);
                     document.getElementById('cart-selected-coords').value = `${centerLat}, ${centerLng}`;
                     mapCartCheckout.on('click', (e) => { markerCartCheckout.setLatLng(e.latlng); document.getElementById('cart-selected-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });

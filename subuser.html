@@ -146,11 +146,22 @@
         let markerHelp = null, markerShop = null, markerCartCheckout = null;
         let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "helps";
 
+        // pre-populate checking inputs
+        if(userName && document.getElementById('help-fullname')) {
+            document.getElementById('help-fullname').value = userName;
+        }
+        if(userContactPhone && document.getElementById('help-phone')) {
+            document.getElementById('help-phone').value = userContactPhone;
+            document.getElementById('cart-phone-input').value = userContactPhone;
+        }
+        if(profileSavedAddress && document.getElementById('cart-delivery-address-input')) {
+            document.getElementById('cart-delivery-address-input').value = profileSavedAddress;
+        }
+
         document.getElementById('tab-helps-btn').addEventListener('click', () => switchTab('helps'));
         document.getElementById('tab-grocery-btn').addEventListener('click', () => switchTab('grocery'));
         document.getElementById('tab-orders-btn').addEventListener('click', () => switchTab('orders'));
 
-        // Toggle Floating Checkout Canvas Openers
         document.getElementById('btn-floating-cart').addEventListener('click', () => {
             document.getElementById('cart-checkout-modal').classList.remove('hidden');
             initializeCartCheckoutDeliveryMap();
@@ -250,6 +261,41 @@
             }, 200);
         }
 
+        // --- NEW: RECONSTRUCTED AND LINKED HELP POST PIPELINE WRITER ---
+        document.getElementById('btn-submit-help').addEventListener('click', () => {
+            const hName = document.getElementById('help-fullname').value.trim();
+            const hPhone = document.getElementById('help-phone').value.trim();
+            const hDesc = document.getElementById('help-desc').value.trim();
+            const coordsSplit = document.getElementById('help-coords').value.split(',');
+
+            if (!hName || !hPhone || !hDesc || coordsSplit.length !== 2) {
+                alert("Please completely fill out all input fields and lock map tracking variables.");
+                return;
+            }
+
+            const pushHelpRef = push(ref(db, 'helps_posts'));
+            const generatedKey = pushHelpRef.key;
+
+            set(pushHelpRef, {
+                postId: generatedKey,
+                uid: userUid,
+                posterName: hName,
+                phone: hPhone,
+                desc: hDesc,
+                lat: parseFloat(coordsSplit[0]),
+                lng: parseFloat(coordsSplit[1]),
+                status: "Processing",
+                createdAt: Date.now()
+            })
+            .then(() => {
+                document.getElementById('help-desc').value = "";
+                document.getElementById('action-modal-overlay').classList.add('hidden');
+                alert("Assistance Notice deployed to nearby network endpoints successfully!");
+                switchTab('orders');
+            })
+            .catch((err) => alert(err.message));
+        });
+
         document.getElementById('btn-submit-shop').addEventListener('click', () => {
             const name = document.getElementById('shop-name').value.trim();
             if(!name || currentShopItems.length === 0) return alert("Provide a shop name and add at least one item.");
@@ -333,7 +379,6 @@
             }, 250);
         }
 
-        // Cross-Store Multi-Vendor Array Ingestion Handler
         function addItemToCartArray(title, price, originShopUid, originShopName) {
             const numericPrice = parseInt(price.replace(/[^0-9]/g, '')) || 0;
             const existing = activeCart.find(i => i.title === title && i.shopUid === originShopUid);
@@ -398,25 +443,23 @@
             });
         });
 
-        // Pipeline priority routing updates orders list
         const updateOrdersAndHelpsUnifiedFeedOutput = () => {
             const container = document.getElementById('orders-feed-output'); container.innerHTML = "";
             let itemsPool = [];
             get(ref(db, 'orders')).then(ordersSnap => {
                 if (ordersSnap.exists()) { Object.values(ordersSnap.val()).filter(o => o.uid === userUid).forEach(order => itemsPool.push({ ...order, _type: 'Order' })); }
                 get(ref(db, 'helps_posts')).then(helpsSnap => {
-                    if (helpsSnap.exists()) { Object.values(helpsSnap.val()).filter(h => h.uid === userUid && h.status !== "Processing").forEach(helpRun => itemsPool.push({ ...helpRun, _type: 'Help' })); }
+                    if (helpsSnap.exists()) { Object.values(helpsSnap.val()).filter(h => h.uid === userUid).forEach(helpRun => itemsPool.push({ ...helpRun, _type: 'Help' })); }
                     
                     if(itemsPool.length === 0) {
                         container.innerHTML = `<p class="text-slate-400 text-center py-6 text-xs">No entries logged.</p>`;
                         return;
                     }
                     
-                    // Priority sorting constraint rules
                     itemsPool.sort((a, b) => {
                         const scoreA = (a.status === 'Picked Up' ? 3 : a.status === 'Approved' ? 2 : a.status === 'Processing' ? 1 : 0);
                         const scoreB = (b.status === 'Picked Up' ? 3 : b.status === 'Approved' ? 2 : b.status === 'Processing' ? 1 : 0);
-                        return scoreB - scoreA; // Highest ongoing tasks sit explicitly at layout position 0
+                        return scoreB - scoreA;
                     });
 
                     itemsPool.forEach(item => appendProgressCardToFeed(item, item._type, container));
@@ -437,7 +480,6 @@
             
             let summaryString = obj.items ? obj.items.map(i => `${i.title} (x${i.qty})`).join(', ') : obj.desc;
             
-            // Cryptographic string conversion rules outputting deterministic 6-digit OTP codes securely
             let numericVal = 0;
             const seedString = obj.orderId || obj.postId || "000000";
             for(let i=0; i<seedString.length; i++) { numericVal += seedString.charCodeAt(i); }

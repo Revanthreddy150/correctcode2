@@ -6,6 +6,24 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        /* Smooth transitions for map resizing */
+        .map-normal-size {
+            height: 10rem; /* h-40 */
+            width: 100%;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .map-fullscreen-size {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 150 !important;
+            border-radius: 0rem !important;
+        }
+    </style>
 </head>
 <body class="bg-white text-slate-800 p-4 font-sans min-h-screen relative pb-24">
 
@@ -90,12 +108,17 @@
     <div id="action-modal-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl relative border max-h-[90vh] overflow-y-auto">
             <button id="btn-close-action-modal" class="absolute top-4 right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
-            <div class="flex border-b pb-2 mb-4 space-x-4 text-sm font-bold"><button id="form-help-tab" class="text-blue-600 border-b-2 border-blue-600 pb-1">Request Help</button><button id="form-shop-tab" class="text-slate-400 pb-1">Register Restaurant / Shop</button></div>
+            
+            <div id="form-tab-header" class="flex border-b pb-2 mb-4 space-x-4 text-sm font-bold">
+                <button id="form-help-tab" class="text-blue-600 border-b-2 border-blue-600 pb-1">Request Help</button>
+                <button id="form-shop-tab" class="text-slate-400 pb-1">Register Restaurant / Shop</button>
+            </div>
             
             <div id="form-help-block" class="space-y-3">
+                <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span><h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Request Emergency Assistance</h3></div>
                 <input type="text" id="help-fullname" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-semibold" placeholder="Your Full Name">
-                <div class="h-40 bg-slate-100 rounded-xl overflow-hidden relative" id="map-help-box"></div>
-                <input type="text" id="help-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg">
+                <div class="map-normal-size bg-slate-100 cursor-crosshair relative" id="map-help-box"></div>
+                <input type="text" id="help-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center" placeholder="Click map to resize and lock location coordinates">
                 <input type="tel" id="help-phone" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs" placeholder="Working Number">
                 <textarea id="help-desc" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs h-16" placeholder="Describe assistance needed..."></textarea>
                 <button id="btn-submit-help" class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-xl cursor-pointer">Post Help Request</button>
@@ -104,7 +127,10 @@
             <div id="form-shop-block" class="hidden space-y-3">
                 <h4 id="action-shop-title-label" class="text-xs font-black text-slate-800 uppercase tracking-wider">New Store Registration Parameters</h4>
                 <input type="text" id="shop-name" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-bold" placeholder="Restaurant or Shop Title Name">
-                <div id="shop-map-fields-wrapper" class="space-y-2"><div class="h-40 bg-slate-100 rounded-xl overflow-hidden relative" id="map-shop-box"></div><input type="text" id="shop-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg"></div>
+                <div id="shop-map-fields-wrapper" class="space-y-2">
+                    <div class="map-normal-size bg-slate-100 cursor-crosshair relative" id="map-shop-box"></div>
+                    <input type="text" id="shop-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center" placeholder="Click map to resize and lock location coordinates">
+                </div>
                 <div class="border p-3 rounded-xl bg-slate-50 space-y-2">
                     <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block border-b pb-1">Manage Menu Directory Items (Max 50)</span>
                     <div class="flex gap-2"><input type="text" id="item-title" class="flex-1 p-2 bg-white border rounded-lg text-xs" placeholder="Item Name"><input type="text" id="item-price" class="w-20 p-2 bg-white border rounded-lg text-xs text-center" placeholder="₹180"><button id="btn-add-subitem" class="bg-slate-800 text-white px-3 rounded-lg font-black text-sm cursor-pointer">+</button></div>
@@ -135,7 +161,6 @@
 
         const params = new URLSearchParams(window.location.search);
         
-        // FIXED: Explicit fallback to parse variable properly because index.html sends ?uid=...
         const userUid = params.get('uid') || params.get('userUid') || "Anonymous_Node"; 
         const userName = params.get('name') ? decodeURIComponent(params.get('name')) : "";
         const userAadharStatus = params.get('aadharStatus') || "Unverified";
@@ -148,7 +173,6 @@
         let markerHelp = null, markerShop = null, markerCartCheckout = null;
         let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "helps";
 
-        // Pre-populate elements safely
         if(userName && document.getElementById('help-fullname')) {
             document.getElementById('help-fullname').value = userName;
         }
@@ -181,17 +205,21 @@
             document.getElementById(`view-${t}`).classList.remove('hidden');
         }
 
+        // --- FIXED: CONTEXT-AWARE FLOATING BUTTON ROUTER ---
         document.getElementById('btn-floating-action').addEventListener('click', () => {
             if (userAadharStatus !== "Verified") { alert(`Verification Pending. Account status state: ${userAadharStatus}`); return; }
+            
             document.getElementById('action-modal-overlay').classList.remove('hidden');
+            document.getElementById('form-tab-header').classList.add('hidden'); // Hide master tabs to prevent multi-form switches
             initializeFormMaps();
+
             if (currentActiveViewTab === "grocery") {
-                document.getElementById('form-shop-block').classList.add('hidden'); document.getElementById('form-shop-block').classList.remove('hidden');
-                document.getElementById('form-shop-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-help-tab').className = "text-slate-400 pb-1";
+                document.getElementById('form-shop-block').classList.remove('hidden'); 
+                document.getElementById('form-help-block').classList.add('hidden');
                 prepareShopFormLayoutUI("register");
             } else {
-                document.getElementById('form-help-block').classList.remove('hidden'); document.getElementById('form-shop-block').classList.add('hidden');
-                document.getElementById('form-help-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-shop-tab').className = "text-slate-400 pb-1";
+                document.getElementById('form-help-block').classList.remove('hidden'); 
+                document.getElementById('form-shop-block').classList.add('hidden');
             }
         });
 
@@ -215,18 +243,13 @@
             }
         }
 
-        document.getElementById('btn-close-action-modal').addEventListener('click', () => document.getElementById('action-modal-overlay').classList.add('hidden'));
+        document.getElementById('btn-close-action-modal').addEventListener('click', () => {
+            document.getElementById('action-modal-overlay').classList.add('hidden');
+            // Safely shrink map containers if modal closed while tracking fullscreen
+            document.getElementById('map-help-box').className = "map-normal-size bg-slate-100 cursor-crosshair relative";
+            document.getElementById('map-shop-box').className = "map-normal-size bg-slate-100 cursor-crosshair relative";
+        });
         document.getElementById('btn-close-shop-modal').addEventListener('click', () => document.getElementById('shop-details-modal').classList.add('hidden'));
-
-        document.getElementById('form-help-tab').addEventListener('click', () => {
-            document.getElementById('form-help-block').classList.remove('hidden'); document.getElementById('form-shop-block').classList.add('hidden');
-            document.getElementById('form-help-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-shop-tab').className = "text-slate-400 pb-1";
-        });
-        document.getElementById('form-shop-tab').addEventListener('click', () => {
-            document.getElementById('form-shop-block').classList.remove('hidden'); document.getElementById('form-help-block').classList.add('hidden');
-            document.getElementById('form-shop-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-help-tab').className = "text-slate-400 pb-1";
-            prepareShopFormLayoutUI("register");
-        });
 
         document.getElementById('btn-add-subitem').addEventListener('click', () => {
             const t = document.getElementById('item-title').value.trim(); const p = document.getElementById('item-price').value.trim();
@@ -246,24 +269,74 @@
             document.querySelectorAll('.btn-remove-subitem').forEach(b => b.onclick = () => { currentShopItems.splice(parseInt(b.getAttribute('data-idx')), 1); rebuildItemsListDOMUI(); });
         }
 
+        // --- FIXED: INTERACTIVE FULLSCREEN TOGGLE MAP INITIALIZATION ENGINE ---
         function initializeFormMaps() {
             setTimeout(() => {
+                const boxHelp = document.getElementById('map-help-box');
+                const boxShop = document.getElementById('map-shop-box');
+
                 if (!mapHelp) {
-                    mapHelp = L.map('map-help-box').setView([centerLat, centerLng], 15); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapHelp);
-                    markerHelp = L.marker([centerLat, centerLng], { draggable: true }).addTo(mapHelp);
+                    mapHelp = L.map('map-help-box').setView([centerLat, centerLng], 15); 
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapHelp);
+                    markerHelp = L.marker([centerLat, centerLng]).addTo(mapHelp);
                     document.getElementById('help-coords').value = `${centerLat}, ${centerLng}`;
-                    mapHelp.on('click', (e) => { markerHelp.setLatLng(e.latlng); document.getElementById('help-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });
+                    
+                    // Click Map Element to make it full screen
+                    boxHelp.addEventListener('click', (e) => {
+                        if (!boxHelp.classList.contains('map-fullscreen-size')) {
+                            boxHelp.className = "map-fullscreen-size";
+                            mapHelp.invalidateSize();
+                        }
+                    });
+
+                    // Handle location picking events
+                    mapHelp.on('click', (e) => {
+                        markerHelp.setLatLng(e.latlng); 
+                        document.getElementById('help-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`;
+                        
+                        // Immediately minimize once point is logged safely
+                        if (boxHelp.className === "map-fullscreen-size") {
+                            setTimeout(() => {
+                                boxHelp.className = "map-normal-size bg-slate-100 cursor-crosshair relative";
+                                mapHelp.invalidateSize();
+                                mapHelp.setView(e.latlng, 15);
+                            }, 150);
+                        }
+                    });
                 }
+                
                 if (!mapShop) {
-                    mapShop = L.map('map-shop-box').setView([centerLat, centerLng], 15); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapShop);
-                    markerShop = L.marker([centerLat, centerLng], { draggable: true }).addTo(mapShop);
+                    mapShop = L.map('map-shop-box').setView([centerLat, centerLng], 15); 
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapShop);
+                    markerShop = L.marker([centerLat, centerLng]).addTo(mapShop);
                     document.getElementById('shop-coords').value = `${centerLat}, ${centerLng}`;
-                    mapShop.on('click', (e) => { markerShop.setLatLng(e.latlng); document.getElementById('shop-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });
+                    
+                    // Click Map Element to make it full screen
+                    boxShop.addEventListener('click', (e) => {
+                        if (!boxShop.classList.contains('map-fullscreen-size')) {
+                            boxShop.className = "map-fullscreen-size";
+                            mapShop.invalidateSize();
+                        }
+                    });
+
+                    // Handle location picking events
+                    mapShop.on('click', (e) => {
+                        markerShop.setLatLng(e.latlng); 
+                        document.getElementById('shop-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`;
+                        
+                        // Immediately minimize once point is logged safely
+                        if (boxShop.className === "map-fullscreen-size") {
+                            setTimeout(() => {
+                                boxShop.className = "map-normal-size bg-slate-100 cursor-crosshair relative";
+                                mapShop.invalidateSize();
+                                mapShop.setView(e.latlng, 15);
+                            }, 150);
+                        }
+                    });
                 }
             }, 200);
         }
 
-        // --- FIXED HELP POST SUBMISSION ROUTE ---
         document.getElementById('btn-submit-help').addEventListener('click', () => {
             const hName = document.getElementById('help-fullname').value.trim();
             const hPhone = document.getElementById('help-phone').value.trim();

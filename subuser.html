@@ -134,19 +134,21 @@
         const db = getDatabase(app);
 
         const params = new URLSearchParams(window.location.search);
-        const userUid = params.get('uid');
-        const userName = params.get('name');
+        
+        // FIXED: Explicit fallback to parse variable properly because index.html sends ?uid=...
+        const userUid = params.get('uid') || params.get('userUid') || "Anonymous_Node"; 
+        const userName = params.get('name') ? decodeURIComponent(params.get('name')) : "";
         const userAadharStatus = params.get('aadharStatus') || "Unverified";
         const centerLat = parseFloat(params.get('lat')) || 17.3850;
         const centerLng = parseFloat(params.get('lng')) || 78.4867;
-        const profileSavedAddress = decodeURIComponent(params.get('savedAddress') || "");
-        const userContactPhone = params.get('phone') || "";
+        const profileSavedAddress = params.get('savedAddress') ? decodeURIComponent(params.get('savedAddress')) : "";
+        const userContactPhone = params.get('phone') ? decodeURIComponent(params.get('phone')) : "";
 
         let mapHelp = null, mapShop = null, mapCartCheckout = null;
         let markerHelp = null, markerShop = null, markerCartCheckout = null;
         let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "helps";
 
-        // pre-populate checking inputs
+        // Pre-populate elements safely
         if(userName && document.getElementById('help-fullname')) {
             document.getElementById('help-fullname').value = userName;
         }
@@ -184,7 +186,7 @@
             document.getElementById('action-modal-overlay').classList.remove('hidden');
             initializeFormMaps();
             if (currentActiveViewTab === "grocery") {
-                document.getElementById('form-shop-block').classList.remove('hidden'); document.getElementById('form-help-block').classList.add('hidden');
+                document.getElementById('form-shop-block').classList.add('hidden'); document.getElementById('form-shop-block').classList.remove('hidden');
                 document.getElementById('form-shop-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-help-tab').className = "text-slate-400 pb-1";
                 prepareShopFormLayoutUI("register");
             } else {
@@ -261,18 +263,19 @@
             }, 200);
         }
 
-        // --- NEW: RECONSTRUCTED AND LINKED HELP POST PIPELINE WRITER ---
+        // --- FIXED HELP POST SUBMISSION ROUTE ---
         document.getElementById('btn-submit-help').addEventListener('click', () => {
             const hName = document.getElementById('help-fullname').value.trim();
             const hPhone = document.getElementById('help-phone').value.trim();
             const hDesc = document.getElementById('help-desc').value.trim();
-            const coordsSplit = document.getElementById('help-coords').value.split(',');
+            const coordsStr = document.getElementById('help-coords').value;
 
-            if (!hName || !hPhone || !hDesc || coordsSplit.length !== 2) {
-                alert("Please completely fill out all input fields and lock map tracking variables.");
+            if (!hName || !hPhone || !hDesc || !coordsStr) {
+                alert("Please fill out all missing details entirely.");
                 return;
             }
 
+            const coordsSplit = coordsStr.split(',');
             const pushHelpRef = push(ref(db, 'helps_posts'));
             const generatedKey = pushHelpRef.key;
 
@@ -282,18 +285,18 @@
                 posterName: hName,
                 phone: hPhone,
                 desc: hDesc,
-                lat: parseFloat(coordsSplit[0]),
-                lng: parseFloat(coordsSplit[1]),
+                lat: parseFloat(coordsSplit[0].trim()),
+                lng: parseFloat(coordsSplit[1].trim()),
                 status: "Processing",
                 createdAt: Date.now()
             })
             .then(() => {
                 document.getElementById('help-desc').value = "";
                 document.getElementById('action-modal-overlay').classList.add('hidden');
-                alert("Assistance Notice deployed to nearby network endpoints successfully!");
+                alert("Assistance request published smoothly on agent radar tracking terminals!");
                 switchTab('orders');
             })
-            .catch((err) => alert(err.message));
+            .catch((err) => alert("Database Error: " + err.message));
         });
 
         document.getElementById('btn-submit-shop').addEventListener('click', () => {

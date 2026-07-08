@@ -16,22 +16,24 @@
 
     <div class="max-w-xl mx-auto mb-4 sm:mb-6">
         <div class="flex items-center bg-white p-1 rounded-full shadow-sm border border-slate-200/60">
-            <button id="tab-grocery-btn" class="flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all cursor-pointer text-blue-600 bg-blue-50 font-black">
-                <span class="text-lg mb-0.5">🛒</span>
+            <button id="tab-grocery-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black">
+                <span class="text-lg sm:text-xl mb-0.5">🛒</span>
                 <span class="text-[10px] sm:text-xs tracking-wide">Grocery</span>
             </button>
-            <button id="tab-helps-btn" class="flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
-                <span class="text-lg mb-0.5">🆘</span>
+            <button id="tab-helps-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
+                <span class="text-lg sm:text-xl mb-0.5">🆘</span>
                 <span class="text-[10px] sm:text-xs tracking-wide">Helps Feed</span>
             </button>
-            <button id="tab-orders-btn" class="flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
-                <span class="text-lg mb-0.5">📦</span>
+            <button id="tab-orders-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
+                <span class="text-lg sm:text-xl mb-0.5">📦</span>
                 <span class="text-[10px] sm:text-xs tracking-wide">Orders</span>
             </button>
         </div>
     </div>
 
-    <div id="view-grocery" class="space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div></div>
+    <div id="view-grocery" class="space-y-4">
+        <div id="grocery-feed-output" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+    </div>
     
     <div id="view-helps" class="hidden space-y-4">
         <div class="grid grid-cols-3 gap-2 max-w-md mx-auto bg-white p-1 rounded-xl border border-slate-100 shadow-sm text-center font-bold text-[11px] sm:text-xs">
@@ -70,7 +72,7 @@
                 <input type="tel" id="parcel-rec-phone" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" placeholder="Receiver Contact Number">
                 
                 <div id="trigger-parcel-pickup-map" class="h-16 bg-amber-50 border border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center text-center p-2 cursor-pointer">
-                    <span class="text-xs font-bold text-amber-700">🗺️ Pinpoint Pickup Point (Map 1)</span>
+                    <span class="text-xs font-bold text-amber-700">AM bulance 🗺️ Pinpoint Pickup Point (Map 1)</span>
                 </div>
                 <input type="text" id="parcel-pickup-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono rounded-lg text-center" placeholder="Pickup Coordinates">
 
@@ -84,7 +86,7 @@
             <div id="form-help-assist-block" class="hidden space-y-3">
                 <div class="flex items-center gap-1.5 border-b pb-2"><span class="text-lg">🤝</span><h3 class="text-xs sm:text-sm font-black text-slate-800 uppercase">Hire On-Demand Personal Assistant</h3></div>
                 <input type="text" id="assist-name" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="Your Full Name">
-                <input type="tel" id="assist-phone" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" placeholder="Contact Contact Phone">
+                <input type="tel" id="assist-phone" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" placeholder="Contact Phone Number">
                 <div id="trigger-assist-map-fs" class="h-20 bg-indigo-50 border border-dashed border-indigo-300 rounded-xl flex flex-col items-center justify-center text-center p-2 cursor-pointer">
                     <span class="text-xs font-bold text-indigo-700">📍 Select Work Target Address Spot</span>
                 </div>
@@ -152,6 +154,21 @@
         </div>
     </div>
 
+    <div id="success-tick-overlay" class="hidden fixed inset-0 bg-slate-900/70 z-[200] flex flex-col items-center justify-center animate-fade-in">
+        <div class="bg-white p-6 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-xs mx-4">
+            <div class="w-14 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl font-black mb-4">✓</div>
+            <h4 class="text-lg font-black text-slate-900">Order Placed!</h4>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">Your order has been logged. Checking for local delivery agents near your range node coordinates...</p>
+        </div>
+    </div>
+
+    <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex items-center space-x-2 sm:space-x-3 z-40">
+        <button id="btn-floating-cart" class="w-12 h-12 sm:w-14 sm:h-14 bg-slate-900 text-white rounded-full text-lg shadow-xl flex items-center justify-center relative cursor-pointer">
+            🛒<span id="cart-floating-badge" class="absolute -top-1 -right-1 bg-red-500 text-white font-black text-[9px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-0 transition-transform duration-200">0</span>
+        </button>
+        <button id="btn-floating-action" class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full text-xl sm:text-2xl font-black shadow-xl flex items-center justify-center cursor-pointer">+</button>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, push, onValue, update, get, child, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -180,8 +197,10 @@
         const userContactPhone = params.get('phone') ? decodeURIComponent(params.get('phone')) : "";
 
         let globalFsMapInstance = null, globalFsMarkerInstance = null, targetCoordFieldId = null, currentlyOpenShopObject = null;
-        let currentShopItems = [], activeCart = [], currentActiveViewTab = "grocery", currentSubHelpViewTab = "med";
+        let currentShopItems = [], activeCart = [], currentActiveViewTab = "grocery", currentSubHelpViewTab = "medicines";
         let liveTimerIntervalWorkers = {};
+
+        const mapTileProviderUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
         if(userName) {
             document.getElementById('med-name').value = userName;
@@ -196,14 +215,13 @@
         }
         if(profileSavedAddress) document.getElementById('cart-delivery-address-input').value = profileSavedAddress;
 
-        // Tab Channel Controller Logic
         document.getElementById('tab-grocery-btn').addEventListener('click', () => switchTab('grocery'));
         document.getElementById('tab-helps-btn').addEventListener('click', () => switchTab('helps'));
         document.getElementById('tab-orders-btn').addEventListener('click', () => switchTab('orders'));
 
-        document.getElementById('btn-subhelp-med').addEventListener('click', () => switchSubHelpTab('med'));
-        document.getElementById('btn-subhelp-parcel').addEventListener('click', () => switchSubHelpTab('parcel'));
-        document.getElementById('btn-subhelp-assist').addEventListener('click', () => switchSubHelpTab('assist'));
+        document.getElementById('btn-subhelp-med').addEventListener('click', () => switchSubHelpTab('medicines'));
+        document.getElementById('btn-subhelp-parcel').addEventListener('click', () => switchSubHelpTab('parcels'));
+        document.getElementById('btn-subhelp-assist').addEventListener('click', () => switchSubHelpTab('assistant'));
 
         function switchTab(t) {
             currentActiveViewTab = t;
@@ -217,10 +235,11 @@
 
         function switchSubHelpTab(st) {
             currentSubHelpViewTab = st;
-            ['med', 'parcel', 'assist'].forEach(x => {
-                document.getElementById(`btn-subhelp-${x}`).className = "py-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 cursor-pointer";
+            const tabMap = { 'medicines': 'med', 'parcels': 'parcel', 'assistant': 'assist' };
+            ['medicines', 'parcels', 'assistant'].forEach(x => {
+                document.getElementById(`btn-subhelp-${tabMap[x]}`).className = "py-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 cursor-pointer";
             });
-            document.getElementById(`btn-subhelp-${st}`).className = "py-2 rounded-lg bg-blue-600 text-white cursor-pointer";
+            document.getElementById(`btn-subhelp-${tabMap[st]}`).className = "py-2 rounded-lg bg-blue-600 text-white cursor-pointer";
             triggerSynchronousHelpsFeedRenderPipeline();
         }
 
@@ -234,12 +253,10 @@
             setTimeout(() => { box.classList.remove('scale-100', 'opacity-100'); box.classList.add('scale-95', 'opacity-0'); setTimeout(() => { overlay.classList.add('hidden'); }, 300); }, 3500);
         }
 
-        // Floating Activation Panel Trigger Engine
         document.getElementById('btn-floating-action').addEventListener('click', () => {
-            if (userAadharStatus !== "Verified") { alert(`Verification Checked State Exception: ${userAadharStatus}`); return; }
+            if (userAadharStatus !== "Verified") { alert(`Verification Pending. Account status state: ${userAadharStatus}`); return; }
             document.getElementById('action-modal-overlay').classList.remove('hidden');
             
-            // Context Aware Form Display Filters
             document.getElementById('form-help-med-block').classList.add('hidden');
             document.getElementById('form-help-parcel-block').classList.add('hidden');
             document.getElementById('form-help-assist-block').classList.add('hidden');
@@ -249,14 +266,13 @@
                 document.getElementById('form-shop-block').classList.remove('hidden');
                 prepareShopFormLayoutUI("register");
             } else if (currentActiveViewTab === "helps") {
-                if (currentSubHelpViewTab === "med") document.getElementById('form-help-med-block').classList.remove('hidden');
-                if (currentSubHelpViewTab === "parcel") document.getElementById('form-help-parcel-block').classList.remove('hidden');
-                if (currentSubHelpViewTab === "assist") document.getElementById('form-help-assist-block').classList.remove('hidden');
+                if (currentSubHelpViewTab === "medicines") document.getElementById('form-help-med-block').classList.remove('hidden');
+                if (currentSubHelpViewTab === "parcels") document.getElementById('form-help-parcel-block').classList.remove('hidden');
+                if (currentSubHelpViewTab === "assistant") document.getElementById('form-help-assist-block').classList.remove('hidden');
             }
         });
 
-        // Map Trigger Event Bindings
-        document.getElementById('trigger-med-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('med-coords'));
+        document.getElementById('trigger-help-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('med-coords'));
         document.getElementById('trigger-parcel-pickup-map').addEventListener('click', () => openUnifiedFullscreenMapEngine('parcel-pickup-coords'));
         document.getElementById('trigger-parcel-drop-map').addEventListener('click', () => openUnifiedFullscreenMapEngine('parcel-drop-coords'));
         document.getElementById('trigger-assist-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('assist-coords'));
@@ -290,15 +306,14 @@
         document.getElementById('btn-close-action-modal').addEventListener('click', () => document.getElementById('action-modal-overlay').classList.add('hidden'));
         document.getElementById('btn-close-shop-modal').addEventListener('click', () => { document.getElementById('shop-details-modal').classList.add('hidden'); currentlyOpenShopObject = null; });
 
-        // Submit Handles For Split Helps Categories
         document.getElementById('btn-submit-med-help').addEventListener('click', () => {
             const name = document.getElementById('med-name').value.trim();
             const phone = document.getElementById('med-phone').value.trim();
             const coords = document.getElementById('med-coords').value;
-            if(!name || !phone || !coords) return alert("Fill all parameters entirely.");
+            if(!name || !phone || !coords) return alert("Fill parameters entirely.");
 
             const itemRef = push(ref(db, 'helps_posts'));
-            set(itemRef, { postId: itemRef.key, uid: userUid, helpType: "Medicines", posterName: name, phone, lat: parseFloat(coords.split(',')[0]), lng: parseFloat(coords.split(',')[1]), desc: "Medicine delivery execution task request.", status: "Processing", timestamp: Date.now() })
+            set(itemRef, { postId: itemRef.key, uid: userUid, helpType: "Medicines", posterName: name, phone, lat: parseFloat(coords.split(',')[0]), lng: parseFloat(coords.split(',')[1]), desc: "Medicine delivery medical assistance call.", status: "Processing", timestamp: Date.now() })
             .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); displayCenterScreenToast("Your help request is active. Wait for the agent to accept your help.", "⏳"); switchTab('orders'); });
         });
 
@@ -309,7 +324,7 @@
             const rPhone = document.getElementById('parcel-rec-phone').value.trim();
             const pCoords = document.getElementById('parcel-pickup-coords').value;
             const dCoords = document.getElementById('parcel-drop-coords').value;
-            if(!sName || !sPhone || !rName || !rPhone || !pCoords || !dCoords) return alert("All parcel inputs are mandatory.");
+            if(!sName || !sPhone || !rName || !rPhone || !pCoords || !dCoords) return alert("All configurations are mandatory.");
 
             const itemRef = push(ref(db, 'helps_posts'));
             set(itemRef, { 
@@ -317,7 +332,7 @@
                 receiverName: rName, receiverPhone: rPhone,
                 lat: parseFloat(pCoords.split(',')[0]), lng: parseFloat(pCoords.split(',')[1]),
                 dropLat: parseFloat(dCoords.split(',')[0]), dropLng: parseFloat(dCoords.split(',')[1]),
-                desc: `Parcel run from point A to drop target destination. Recipient name: ${rName}`, status: "Processing", timestamp: Date.now() 
+                desc: `Parcel Courier Run from client node to: ${rName}`, status: "Processing", timestamp: Date.now() 
             })
             .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); displayCenterScreenToast("Your parcel delivery is active. Awaiting driver route linkage.", "📦"); switchTab('orders'); });
         });
@@ -327,21 +342,22 @@
             const phone = document.getElementById('assist-phone').value.trim();
             const coords = document.getElementById('assist-coords').value;
             const desc = document.getElementById('assist-task-desc').value.trim();
-            if(!name || !phone || !coords || !desc) return alert("Fill parameters entirely.");
+            if(!name || !phone || !coords || !desc) return alert("Fill fields completely.");
 
             const itemRef = push(ref(db, 'helps_posts'));
             set(itemRef, { postId: itemRef.key, uid: userUid, helpType: "Assistant", posterName: name, phone, lat: parseFloat(coords.split(',')[0]), lng: parseFloat(coords.split(',')[1]), desc, status: "Processing", timestamp: Date.now() })
             .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); displayCenterScreenToast("Your help request is active. Wait for the agent to accept your help.", "⏳"); switchTab('orders'); });
         });
 
-        // Ingestion & Listener Matrix Channels
-        function triggerSynchronousHelpsFeedRenderPipeline() {
+        // FIXED: Re-built case matching rule parsing checks to look for capitalization strings directly
+        function  triggerSynchronousHelpsFeedRenderPipeline() {
             get(ref(db, 'helps_posts')).then(snap => {
                 const output = document.getElementById('helps-feed-output'); output.innerHTML = "";
                 if(!snap.exists()) return;
                 Object.values(snap.val()).forEach(p => {
                     const mappedType = p.helpType || "Medicines";
-                    if(mappedType.toLowerCase() !== currentSubHelpViewTab) return;
+                    // FIXED: Ensures proper validation matches regardless of query selection parameters cases
+                    if(mappedType.toLowerCase() !== currentSubHelpViewTab.toLowerCase()) return;
                     if(p.status !== "Processing" && p.uid !== userUid) return;
 
                     const div = document.createElement('div'); div.className = "p-3 bg-white rounded-xl border border-slate-100 shadow-xs text-xs space-y-1";
@@ -352,10 +368,8 @@
         }
         onValue(ref(db, 'helps_posts'), triggerSynchronousHelpsFeedRenderPipeline);
 
-        // Shopping System Menu Builders
         function prepareShopFormLayoutUI(mode = "register", existingShopData = null) {
             const nameInput = document.getElementById('shop-name');
-            const submitBtn = document.getElementById('btn-submit-shop');
             nameInput.value = ""; currentShopItems = []; document.getElementById('added-items-list').innerHTML = "";
         }
 
@@ -377,7 +391,7 @@
             if(!name || currentShopItems.length === 0) return alert("Parameters missing.");
             const c = document.getElementById('shop-coords').value.split(',');
             set(ref(db, 'shop_requests/' + userUid), { uid: userUid, shopName: name, ownerName: userName, lat: parseFloat(c[0]), lng: parseFloat(c[1]), items: currentShopItems, status: "Pending", submittedAt: Date.now() })
-            .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); alert("Shop Application Under Review Node Processing Canvas Attached!"); });
+            .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); alert("Shop Application logged successfully!"); });
         });
 
         onValue(ref(db, 'approved_shops'), (snapshot) => {
@@ -451,7 +465,7 @@
             let total = 0;
             activeCart.forEach((item, index) => {
                 const cost = item.price * item.qty; total += cost;
-                const row = document.createElement('div'); row.className = "py-1.5 text-xs text-slate-700 border-b flex justify-between items-center";
+                const row = document.createElement('div'); row.className = "py-1.5 text-xs text-slate-700 border-b border-slate-100 flex justify-between items-center";
                 row.innerHTML = `<div><span class="font-bold text-slate-900">${item.title}</span><p class="text-[9px] text-slate-400">Qty: ${item.qty}</p></div><span class="font-mono font-bold">₹${cost}</span>`;
                 wrap.appendChild(row);
             });
@@ -475,7 +489,7 @@
             const dest = document.getElementById('cart-delivery-address-input').value.trim();
             const phone = document.getElementById('cart-phone-input').value.trim();
             const coords = document.getElementById('cart-selected-coords').value.split(',');
-            if(!dest || !phone || coords.length !== 2) return alert("Complete parameters layout validation rules.");
+            if(!dest || !phone || coords.length !== 2) return alert("Prameters incomplete.");
 
             const pushOrderRef = push(ref(db, 'orders'));
             set(pushOrderRef, { orderId: pushOrderRef.key, uid: userUid, userName, items: activeCart, totalBill: document.getElementById('cart-grand-total').innerText, status: "Processing", deliveryAddress: dest, userPhone: phone, lat: parseFloat(coords[0]), lng: parseFloat(coords[1]), timestamp: Date.now() })
@@ -487,7 +501,6 @@
             setTimeout(() => { overlay.classList.add('hidden'); switchTab('orders'); }, 3000);
         }
 
-        // Shared Orders/Helps Realtime Tracker Progress Boards Pipelines
         const updateOrdersAndHelpsUnifiedFeedOutput = () => {
             const container = document.getElementById('orders-feed-output'); container.innerHTML = "";
             let itemsPool = [];
@@ -496,14 +509,13 @@
                 if (ordersSnap.exists()) { Object.values(ordersSnap.val()).filter(o => o.uid === userUid).forEach(order => itemsPool.push({ ...order, _type: 'Order' })); }
                 get(ref(db, 'helps_posts')).then(helpsSnap => {
                     if (helpsSnap.exists()) { Object.values(helpsSnap.val()).filter(h => h.uid === userUid).forEach(helpRun => itemsPool.push({ ...helpRun, _type: 'Help' })); }
-                    if(itemsPool.length === 0) { container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">No ongoing assignments logged.</p>`; return; }
+                    if(itemsPool.length === 0) { container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">No entries logged.</p>`; return; }
                     
                     itemsPool.forEach(item => {
                         const card = document.createElement('div');
                         const isTaskOngoing = (item.status === "Approved" || item.status === "Picked Up" || item.status === "Wait For Confirmation" || item.status === "On The Way" || item.status === "Parcel Sended Done" || item.status === "Confirmed" || item.status === "You Get A Call In 30 Min" || item.status === "Work Started");
                         card.className = `p-3 rounded-xl border text-xs flex flex-col space-y-1 bg-white ${isTaskOngoing ? 'border-blue-500 ring-1 ring-blue-500/10' : 'border-slate-100'}`;
 
-                        // Cryptographic deterministic execution for dual OTP generation rules setup
                         let valSeed = 0; const strSeed = item.orderId || item.postId || "000000";
                         for(let i=0; i<strSeed.length; i++) { valSeed += strSeed.charCodeAt(i); }
                         const startOtp = String((valSeed * 1357) % 900000 + 100000);
@@ -512,12 +524,10 @@
                         let typeDisplayLabel = item._type === 'Order' ? "Store COD Order Run" : `Help Run [${item.helpType || 'General'}]`;
                         let summaryString = item.items ? item.items.map(i => `${i.title} (x${i.qty})`).join(', ') : item.desc;
 
-                        // Stopwatch dynamic logic render channel blocks
                         let timeTrackHtml = "";
                         if(item.helpType === "Medicines" || item.helpType === "Assistant") {
                             timeTrackHtml = `<div class="p-2 bg-slate-100 rounded font-mono text-slate-700 mt-1 flex justify-between items-center"><span>⏱️ Duration Count:</span><span class="font-bold text-blue-600" id="timer-display-${item.postId}">00:00:00</span></div>`;
                             
-                            // Attach continuous listener loops tracking tick counts inside user side interface
                             if(item.timerActiveSinceSeconds && item.status !== "Reached Doorstep" && item.status !== "Completed Task") {
                                 if(!liveTimerIntervalWorkers[item.postId]) {
                                     liveTimerIntervalWorkers[item.postId] = setInterval(() => {
@@ -550,7 +560,7 @@
                             securityOtpBlockHtml = `<div class="p-2 bg-slate-900 text-slate-100 rounded font-mono mt-1 flex justify-between"><span>COD Unlock OTP:</span><b class="text-amber-400">${startOtp}</b></div>`;
                         }
 
-                        let agentBlockHtml = item.agentName ? `<div class="p-2 bg-blue-50 border rounded-lg text-slate-700 text-[10px] mt-1"><p><b>Assigned Carrier Agent:</b> ${item.agentName} (📞 ${item.agentPhone})</p></div>` : '';
+                        let agentBlockHtml = item.agentName ? `<div class="p-2 bg-blue-50 border rounded-lg text-slate-700 text-[10px] mt-1"><p><b>Carrier Agent:</b> ${item.agentName} (📞 ${item.agentPhone})</p></div>` : '';
 
                         card.innerHTML = `<div class="flex justify-between font-bold items-center"><span class="text-slate-900">${typeDisplayLabel}</span><span class="text-blue-600 uppercase tracking-widest text-[10px]">${item.status}</span></div><p class="text-slate-600"><b>Summary:</b> ${summaryString}</p>${timeTrackHtml}${securityOtpBlockHtml}${agentBlockHtml}`;
                         container.appendChild(card);

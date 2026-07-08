@@ -125,8 +125,12 @@
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Pinpoint Delivery Spot on Map</label>
-                        <div id="cart-checkout-map" class="h-28 w-full bg-slate-100 rounded-xl border border-slate-200 overflow-hidden relative"></div>
-                        <input type="text" id="cart-selected-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono text-slate-500 rounded-lg text-center" placeholder="Click map to lock coordinates">
+                        <div id="trigger-cart-map-fs" class="h-28 bg-orange-50 hover:bg-orange-100 border border-orange-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition">
+                            <span class="text-xl">📍</span>
+                            <span class="text-xs font-bold text-orange-700 mt-1">Tap to Open Delivery Tracking Map Fullscreen</span>
+                            <span class="text-[10px] text-slate-400">Required to pinpoint delivery destination range node</span>
+                        </div>
+                        <input type="text" id="cart-selected-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono text-slate-500 rounded-lg text-center" placeholder="Click map area block above to select coordinates">
                     </div>
                 </div>
             </div>
@@ -213,9 +217,7 @@
         const profileSavedAddress = params.get('savedAddress') ? decodeURIComponent(params.get('savedAddress')) : "";
         const userContactPhone = params.get('phone') ? decodeURIComponent(params.get('phone')) : "";
 
-        // --- DECLARED MISSING CHECKOUT MAP VARIABLES GLOBALLY ---
         let globalFsMapInstance = null, globalFsMarkerInstance = null, targetCoordFieldId = null, currentlyOpenShopObject = null;
-        let mapCartCheckout = null, markerCartCheckout = null; 
         let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "grocery";
 
         const mapTileProviderUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
@@ -237,7 +239,6 @@
 
         document.getElementById('btn-floating-cart').addEventListener('click', () => {
             document.getElementById('cart-checkout-modal').classList.remove('hidden');
-            initializeCartCheckoutDeliveryMap();
             renderCartInterfaceView();
         });
         document.getElementById('btn-close-cart-modal').addEventListener('click', () => document.getElementById('cart-checkout-modal').classList.add('hidden'));
@@ -287,8 +288,10 @@
             }
         });
 
+        // --- CONNECTED CHECKOUT MAP LAYOUT ENTRY POINT TO THE ENGINE ---
         document.getElementById('trigger-help-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('help-coords'));
         document.getElementById('trigger-shop-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('shop-coords'));
+        document.getElementById('trigger-cart-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('cart-selected-coords'));
         document.getElementById('btn-close-fs-map').addEventListener('click', closeUnifiedFullscreenMapEngine);
 
         function openUnifiedFullscreenMapEngine(targetInputId) {
@@ -323,6 +326,10 @@
             } else if(targetCoordFieldId === 'shop-coords' && targetDisplayField.value) {
                 document.getElementById('trigger-shop-map-fs').className = "h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
                 document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-xl">✅</span><span class="text-xs font-bold text-green-700 mt-1">Store Coordinates Saved</span>`;
+            } else if(targetCoordFieldId === 'cart-selected-coords' && targetDisplayField.value) {
+                // UPDATE CART SELECTION ELEMENT UI IDENTICALLY TO ASSISTANCE LAYOUT
+                document.getElementById('trigger-cart-map-fs').className = "h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
+                document.getElementById('trigger-cart-map-fs').innerHTML = `<span class="text-xl">✅</span><span class="text-xs font-bold text-green-700 mt-1">Delivery Address Coordinates Locked</span>`;
             }
         }
 
@@ -534,28 +541,6 @@
                     renderShopModalItemsGrid();
                 };
             });
-        }
-
-        // --- FIXED: INITIALIZE MAP PROPERLY AND CALL INVALIDATESIZE FOR CONTAINER LAYOUT RESET ---
-        function initializeCartCheckoutDeliveryMap() {
-            setTimeout(() => {
-                if (!mapCartCheckout) {
-                    mapCartCheckout = L.map('cart-checkout-map').setView([centerLat, centerLng], 16);
-                    L.tileLayer(mapTileProviderUrl).addTo(mapCartCheckout);
-                    markerCartCheckout = L.marker([centerLat, centerLng]).addTo(mapCartCheckout);
-                    document.getElementById('cart-selected-coords').value = `${centerLat}, ${centerLng}`;
-                    
-                    mapCartCheckout.on('click', (e) => { 
-                        markerCartCheckout.setLatLng(e.latlng); 
-                        document.getElementById('cart-selected-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; 
-                    });
-                } else {
-                    mapCartCheckout.setView([centerLat, centerLng], 16); 
-                    markerCartCheckout.setLatLng([centerLat, centerLng]);
-                }
-                // Always call invalidateSize() when opening the container to avoid gray/misaligned tiles
-                mapCartCheckout.invalidateSize();
-            }, 250);
         }
 
         function addItemToCartArray(title, price, originShopUid, originShopName) {

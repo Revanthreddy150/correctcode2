@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sub User Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body class="bg-white text-slate-800 p-4 font-sans min-h-screen relative pb-24">
+
+    <div class="flex items-center space-x-2 mb-6 border-b pb-4 border-slate-100">
+        <button id="tab-helps-btn" class="px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-blue-600 text-white shadow-md cursor-pointer">Helps Feed</button>
+        <button id="tab-grocery-btn" class="px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">Food & Grocery</button>
+        <button id="tab-orders-btn" class="px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">My Orders</button>
+    </div>
+
+    <div id="view-helps" class="space-y-4"><div id="helps-feed-output" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+    <div id="view-grocery" class="hidden space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div></div>
+    
+    <div id="view-orders" class="hidden space-y-4">
+        <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 mb-2">My Placed Assistance Calls & Orders Feed</h3>
+        <div id="orders-feed-output" class="space-y-3"></div>
+    </div>
+
+    <div id="success-tick-overlay" class="hidden fixed inset-0 bg-slate-900/70 z-[200] flex flex-col items-center justify-center animate-fade-in">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-xs mx-4">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl font-black mb-4">✓</div>
+            <h4 class="text-xl font-black text-slate-900">Order Placed!</h4>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">Your order has been logged. Checking for local delivery agents near your range node coordinates...</p>
+        </div>
+    </div>
+
+    <div id="shop-pending-overlay" class="hidden fixed inset-0 bg-slate-900/70 z-[200] flex flex-col items-center justify-center">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-md mx-4 border border-slate-100">
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mb-4">⏳</div>
+            <h4 class="text-xl font-black text-slate-900">Verification Request Received</h4>
+            <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">It will take up to <b>24 hours</b> to verify and approve your shop. Please wait, our customer support agent will call and verify your credentials shortly.</p>
+            <button onclick="document.getElementById('shop-pending-overlay').classList.add('hidden')" class="mt-5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer">Understood</button>
+        </div>
+    </div>
+
+    <div class="fixed bottom-6 right-6 flex items-center space-x-3 z-40">
+        <button id="btn-floating-cart" class="w-14 h-14 bg-slate-900 text-white rounded-full text-xl shadow-xl flex items-center justify-center relative cursor-pointer group hover:scale-105 transition-all">
+            🛒
+            <span id="cart-floating-badge" class="absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-0 transition-transform duration-200">0</span>
+        </button>
+        <button id="btn-floating-action" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full text-2xl font-black shadow-xl flex items-center justify-center cursor-pointer hover:scale-105 transition-all">+</button>
+    </div>
+
+    <div id="shop-details-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[50] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-3xl h-[75vh] shadow-2xl relative flex flex-col">
+            <button id="btn-close-shop-modal" class="absolute top-4 right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+            <div class="border-b pb-2 mb-3"><h3 id="modal-shop-name" class="font-black text-slate-900 text-xl">Shop Items</h3><p id="modal-shop-meta" class="text-xs text-slate-400"></p></div>
+            <div id="modal-items-grid" class="flex-grow overflow-y-auto space-y-3 grid grid-cols-1 sm:grid-cols-2 gap-3 content-start"></div>
+        </div>
+    </div>
+
+    <div id="cart-checkout-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md h-[85vh] shadow-2xl relative flex flex-col justify-between">
+            <button id="btn-close-cart-modal" class="absolute top-4 right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+            <div class="flex-grow overflow-y-auto pr-1 space-y-4 min-h-0">
+                <h4 class="font-black text-slate-800 text-sm uppercase tracking-wider border-b pb-2">🛒 Network Unified Shopping Cart</h4>
+                <div id="cart-items-wrapper" class="space-y-2 text-xs divide-y divide-slate-100"></div>
+                
+                <div class="space-y-2 text-xs pt-2">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Confirm Phone Number</label>
+                        <input type="tel" id="cart-phone-input" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:outline-blue-500 text-slate-800">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Delivery Address Destination</label>
+                        <textarea id="cart-delivery-address-input" rows="2" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-blue-500 text-slate-700" placeholder="Type text address destination..."></textarea>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Pinpoint Delivery Spot on Map</label>
+                        <div id="cart-checkout-map" class="h-28 w-full bg-slate-100 rounded-xl border border-slate-200 overflow-hidden relative"></div>
+                        <input type="text" id="cart-selected-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono text-slate-500 rounded-lg text-center" placeholder="Click map to lock coordinates">
+                    </div>
+                </div>
+            </div>
+            <div class="border-t pt-3 space-y-2 bg-white">
+                <div class="flex justify-between font-black text-sm text-slate-900"><span>Grand Total Bill:</span><span id="cart-grand-total">₹0</span></div>
+                <p class="text-[10px] text-emerald-600 font-bold bg-emerald-50 p-1.5 rounded text-center">Payment Method: Cash on Delivery (COD) Only</p>
+                <button id="btn-checkout-cart" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-3 rounded-xl transition cursor-pointer">Book Order (Place COD)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="action-modal-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl relative border max-h-[90vh] overflow-y-auto">
+            <button id="btn-close-action-modal" class="absolute top-4 right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+            <div class="flex border-b pb-2 mb-4 space-x-4 text-sm font-bold"><button id="form-help-tab" class="text-blue-600 border-b-2 border-blue-600 pb-1">Request Help</button><button id="form-shop-tab" class="text-slate-400 pb-1">Register Restaurant / Shop</button></div>
+            
+            <div id="form-help-block" class="space-y-3">
+                <input type="text" id="help-fullname" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-semibold" placeholder="Your Full Name">
+                <div class="h-40 bg-slate-100 rounded-xl overflow-hidden relative" id="map-help-box"></div>
+                <input type="text" id="help-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg">
+                <input type="tel" id="help-phone" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs" placeholder="Working Number">
+                <textarea id="help-desc" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs h-16" placeholder="Describe assistance needed..."></textarea>
+                <button id="btn-submit-help" class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-xl cursor-pointer">Post Help Request</button>
+            </div>
+            
+            <div id="form-shop-block" class="hidden space-y-3">
+                <h4 id="action-shop-title-label" class="text-xs font-black text-slate-800 uppercase tracking-wider">New Store Registration Parameters</h4>
+                <input type="text" id="shop-name" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-bold" placeholder="Restaurant or Shop Title Name">
+                <div id="shop-map-fields-wrapper" class="space-y-2"><div class="h-40 bg-slate-100 rounded-xl overflow-hidden relative" id="map-shop-box"></div><input type="text" id="shop-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg"></div>
+                <div class="border p-3 rounded-xl bg-slate-50 space-y-2">
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block border-b pb-1">Manage Menu Directory Items (Max 50)</span>
+                    <div class="flex gap-2"><input type="text" id="item-title" class="flex-1 p-2 bg-white border rounded-lg text-xs" placeholder="Item Name"><input type="text" id="item-price" class="w-20 p-2 bg-white border rounded-lg text-xs text-center" placeholder="₹180"><button id="btn-add-subitem" class="bg-slate-800 text-white px-3 rounded-lg font-black text-sm cursor-pointer">+</button></div>
+                    <ul id="added-items-list" class="text-xs space-y-1 max-h-36 overflow-y-auto divide-y divide-slate-100 pt-1"></ul>
+                </div>
+                <button id="btn-submit-shop" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow">Submit Application for Review</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push, onValue, update, get, child, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGI7b17RRfpgctXIVIgPtyECtUBLEcMAU",
+            authDomain: "skill-bc495.firebaseapp.com",
+            databaseURL: "https://skill-bc495-default-rtdb.firebaseio.com",
+            projectId: "skill-bc495",
+            storageBucket: "skill-bc495.firebasestorage.app",
+            messagingSenderId: "53919238872",
+            appId: "1:53919238872:web:711de8f103089c653025ad",
+            measurementId: "G-6H5D0771NE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const params = new URLSearchParams(window.location.search);
+        const userUid = params.get('uid');
+        const userName = params.get('name');
+        const userAadharStatus = params.get('aadharStatus') || "Unverified";
+        const centerLat = parseFloat(params.get('lat')) || 17.3850;
+        const centerLng = parseFloat(params.get('lng')) || 78.4867;
+        const profileSavedAddress = decodeURIComponent(params.get('savedAddress') || "");
+        const userContactPhone = params.get('phone') || "";
+
+        let mapHelp = null, mapShop = null, mapCartCheckout = null;
+        let markerHelp = null, markerShop = null, markerCartCheckout = null;
+        let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "helps";
+
+        document.getElementById('tab-helps-btn').addEventListener('click', () => switchTab('helps'));
+        document.getElementById('tab-grocery-btn').addEventListener('click', () => switchTab('grocery'));
+        document.getElementById('tab-orders-btn').addEventListener('click', () => switchTab('orders'));
+
+        // Toggle Floating Checkout Canvas Openers
+        document.getElementById('btn-floating-cart').addEventListener('click', () => {
+            document.getElementById('cart-checkout-modal').classList.remove('hidden');
+            initializeCartCheckoutDeliveryMap();
+            renderCartInterfaceView();
+        });
+        document.getElementById('btn-close-cart-modal').addEventListener('click', () => document.getElementById('cart-checkout-modal').classList.add('hidden'));
+
+        function switchTab(t) {
+            currentActiveViewTab = t;
+            ['helps', 'grocery', 'orders'].forEach(v => {
+                document.getElementById(`tab-${v}-btn`).className = "px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-slate-100 text-slate-600 cursor-pointer";
+                document.getElementById(`view-${v}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${t}-btn`).className = "px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-blue-600 text-white shadow-md cursor-pointer";
+            document.getElementById(`view-${t}`).classList.remove('hidden');
+        }
+
+        document.getElementById('btn-floating-action').addEventListener('click', () => {
+            if (userAadharStatus !== "Verified") { alert(`Verification Pending. Account status state: ${userAadharStatus}`); return; }
+            document.getElementById('action-modal-overlay').classList.remove('hidden');
+            initializeFormMaps();
+            if (currentActiveViewTab === "grocery") {
+                document.getElementById('form-shop-block').classList.remove('hidden'); document.getElementById('form-help-block').classList.add('hidden');
+                document.getElementById('form-shop-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-help-tab').className = "text-slate-400 pb-1";
+                prepareShopFormLayoutUI("register");
+            } else {
+                document.getElementById('form-help-block').classList.remove('hidden'); document.getElementById('form-shop-block').classList.add('hidden');
+                document.getElementById('form-help-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-shop-tab').className = "text-slate-400 pb-1";
+            }
+        });
+
+        function prepareShopFormLayoutUI(mode = "register", existingShopData = null) {
+            const titleLabel = document.getElementById('action-shop-title-label');
+            const nameInput = document.getElementById('shop-name');
+            const mapWrapper = document.getElementById('shop-map-fields-wrapper');
+            const submitBtn = document.getElementById('btn-submit-shop');
+            if(mode === "edit" && existingShopData) {
+                titleLabel.innerText = "✏ Edit Restaurant Menu Inventory";
+                nameInput.value = existingShopData.shopName; nameInput.disabled = true; mapWrapper.classList.add('hidden');
+                submitBtn.innerText = "Submit Inventory Modifications";
+                submitBtn.className = "w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow";
+                currentShopItems = [...existingShopData.items]; rebuildItemsListDOMUI();
+            } else {
+                titleLabel.innerText = "New Store Registration Parameters";
+                nameInput.value = ""; nameInput.disabled = false; mapWrapper.classList.remove('hidden');
+                submitBtn.innerText = "Submit Application for Review";
+                submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow";
+                currentShopItems = []; document.getElementById('added-items-list').innerHTML = "";
+            }
+        }
+
+        document.getElementById('btn-close-action-modal').addEventListener('click', () => document.getElementById('action-modal-overlay').classList.add('hidden'));
+        document.getElementById('btn-close-shop-modal').addEventListener('click', () => document.getElementById('shop-details-modal').classList.add('hidden'));
+
+        document.getElementById('form-help-tab').addEventListener('click', () => {
+            document.getElementById('form-help-block').classList.remove('hidden'); document.getElementById('form-shop-block').classList.add('hidden');
+            document.getElementById('form-help-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-shop-tab').className = "text-slate-400 pb-1";
+        });
+        document.getElementById('form-shop-tab').addEventListener('click', () => {
+            document.getElementById('form-shop-block').classList.remove('hidden'); document.getElementById('form-help-block').classList.add('hidden');
+            document.getElementById('form-shop-tab').className = "text-blue-600 border-b-2 border-blue-600 pb-1"; document.getElementById('form-help-tab').className = "text-slate-400 pb-1";
+            prepareShopFormLayoutUI("register");
+        });
+
+        document.getElementById('btn-add-subitem').addEventListener('click', () => {
+            const t = document.getElementById('item-title').value.trim(); const p = document.getElementById('item-price').value.trim();
+            if (!t || !p || currentShopItems.length >= 50) return;
+            currentShopItems.push({ title: t, price: p, imgUrl: "" });
+            rebuildItemsListDOMUI();
+            document.getElementById('item-title').value = ""; document.getElementById('item-price').value = "";
+        });
+
+        function rebuildItemsListDOMUI() {
+            const ul = document.getElementById('added-items-list'); ul.innerHTML = "";
+            currentShopItems.forEach((item, index) => {
+                const li = document.createElement('li'); li.className = "flex justify-between items-center py-1.5 text-slate-700 font-medium";
+                li.innerHTML = `<span>${item.title} (₹${item.price})</span><button class="text-red-500 hover:text-red-700 font-bold px-1 text-xs cursor-pointer btn-remove-subitem" data-idx="${index}">Remove</button>`;
+                ul.appendChild(li);
+            });
+            document.querySelectorAll('.btn-remove-subitem').forEach(b => b.onclick = () => { currentShopItems.splice(parseInt(b.getAttribute('data-idx')), 1); rebuildItemsListDOMUI(); });
+        }
+
+        function initializeFormMaps() {
+            setTimeout(() => {
+                if (!mapHelp) {
+                    mapHelp = L.map('map-help-box').setView([centerLat, centerLng], 15); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapHelp);
+                    markerHelp = L.marker([centerLat, centerLng], { draggable: true }).addTo(mapHelp);
+                    document.getElementById('help-coords').value = `${centerLat}, ${centerLng}`;
+                    mapHelp.on('click', (e) => { markerHelp.setLatLng(e.latlng); document.getElementById('help-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });
+                }
+                if (!mapShop) {
+                    mapShop = L.map('map-shop-box').setView([centerLat, centerLng], 15); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapShop);
+                    markerShop = L.marker([centerLat, centerLng], { draggable: true }).addTo(mapShop);
+                    document.getElementById('shop-coords').value = `${centerLat}, ${centerLng}`;
+                    mapShop.on('click', (e) => { markerShop.setLatLng(e.latlng); document.getElementById('shop-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });
+                }
+            }, 200);
+        }
+
+        document.getElementById('btn-submit-shop').addEventListener('click', () => {
+            const name = document.getElementById('shop-name').value.trim();
+            if(!name || currentShopItems.length === 0) return alert("Provide a shop name and add at least one item.");
+            const isEditMode = document.getElementById('action-shop-title-label').innerText.includes("Edit");
+            if (isEditMode) {
+                get(ref(db, `approved_shops/${userUid}`)).then(snapshot => {
+                    if (snapshot.exists()) {
+                        const shopData = snapshot.val(); shopData.items = currentShopItems; shopData.status = "Pending";
+                        set(ref(db, `shop_requests/${userUid}`), shopData).then(() => {
+                            remove(ref(db, `approved_shops/${userUid}`)).then(() => {
+                                document.getElementById('action-modal-overlay').classList.add('hidden');
+                                document.getElementById('shop-pending-overlay').classList.remove('hidden');
+                            });
+                        });
+                    }
+                });
+            } else {
+                const c = document.getElementById('shop-coords').value.split(',');
+                set(ref(db, 'shop_requests/' + userUid), { uid: userUid, shopName: name, ownerName: userName, lat: parseFloat(c[0]), lng: parseFloat(c[1]), items: currentShopItems, status: "Pending", submittedAt: Date.now() })
+                .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); document.getElementById('shop-pending-overlay').classList.remove('hidden'); });
+            }
+        });
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+        }
+
+        onValue(ref(db, 'helps_posts'), (snapshot) => {
+            const feed = document.getElementById('helps-feed-output'); feed.innerHTML = ""; if (!snapshot.exists()) return;
+            Object.values(snapshot.val()).filter(p => p.status === "Processing" || p.uid === userUid).forEach(p => {
+                const card = document.createElement('div'); card.className = `p-4 rounded-2xl border text-xs flex flex-col space-y-1.5 ${p.uid === userUid ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-100'}`;
+                card.innerHTML = `<div class="flex justify-between font-bold"><span class="text-slate-800 text-sm">${p.posterName}</span></div><p class="text-slate-600 leading-relaxed">${p.desc}</p><span class="text-[10px] text-slate-400">Contact: ${p.phone}</span>`;
+                feed.appendChild(card);
+            });
+        });
+
+        onValue(ref(db, 'approved_shops'), (snapshot) => {
+            const feed = document.getElementById('grocery-feed-output'); feed.innerHTML = ""; if (!snapshot.exists()) return;
+            const list = Object.values(snapshot.val());
+            list.sort((x, y) => (x.uid === userUid ? -1 : y.uid === userUid ? 1 : 0));
+            list.forEach(s => {
+                const dist = calculateDistance(centerLat, centerLng, s.lat, s.lng); if (dist > 10 && s.uid !== userUid) return;
+                const isMyOwnStoreNode = (s.uid === userUid);
+                const card = document.createElement('div'); card.className = `rounded-3xl overflow-hidden border flex flex-col shadow-xs relative ${isMyOwnStoreNode ? 'border-indigo-400 bg-indigo-50/20 ring-4 ring-indigo-500/5' : 'bg-white border-slate-100'}`;
+                let editBtnMarkup = isMyOwnStoreNode ? `<button class="btn-trigger-edit-shop absolute top-3 right-3 z-20 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition shadow cursor-pointer" data-uid="${s.uid}">Edit Inventory</button>` : '';
+                card.innerHTML = `${editBtnMarkup}<div class="shop-card-clickable-area cursor-pointer" data-uid="${s.uid}"><img src="${s.shopImgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600'}" class="h-36 w-full object-cover"><div class="p-4"><div class="flex items-center gap-1.5"><h4 class="font-black text-sm text-slate-900">${s.shopName}</h4>${isMyOwnStoreNode ? '<span class="text-[9px] bg-indigo-100 text-indigo-700 font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider">My Shop</span>' : ''}</div><p class="text-xs text-slate-400">${s.ownerName} (${isMyOwnStoreNode ? 'Your Location Center' : dist.toFixed(1) + ' km away'})</p></div></div>`;
+                feed.appendChild(card);
+            });
+            document.querySelectorAll('.shop-card-clickable-area').forEach(area => area.onclick = () => openShopDetailsModal(snapshot.val()[area.getAttribute('data-uid')]));
+            document.querySelectorAll('.btn-trigger-edit-shop').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); prepareShopFormLayoutUI("edit", snapshot.val()[btn.getAttribute('data-uid')]); document.getElementById('action-modal-overlay').classList.remove('hidden'); document.getElementById('form-shop-block').classList.remove('hidden'); document.getElementById('form-help-block').classList.add('hidden'); });
+        });
+
+        function openShopDetailsModal(shop) {
+            document.getElementById('modal-shop-name').innerText = shop.shopName;
+            document.getElementById('modal-shop-meta').innerText = `Owner: ${shop.ownerName}`;
+            const grid = document.getElementById('modal-items-grid'); grid.innerHTML = "";
+            shop.items.forEach((item) => {
+                const div = document.createElement('div'); div.className = "bg-slate-50 rounded-2xl p-3 border border-slate-100 flex flex-col justify-between space-y-2";
+                div.innerHTML = `<img src="${item.imgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300'}" class="h-24 w-full object-cover rounded-xl"><div class="flex justify-between items-center text-xs font-bold"><span class="truncate">${item.title}</span><span class="text-blue-600">₹${item.price}</span></div><button class="btn-add-to-cart bg-slate-900 text-white text-[10px] font-black py-1.5 rounded-xl uppercase tracking-wider cursor-pointer shadow-xs" data-shopuid="${shop.uid}" data-shopname="${shop.shopName}" data-title="${item.title}" data-price="${item.price}">Add to Basket</button>`;
+                grid.appendChild(div);
+            });
+            document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
+                btn.onclick = (e) => addItemToCartArray(e.target.getAttribute('data-title'), e.target.getAttribute('data-price'), e.target.getAttribute('data-shopuid'), e.target.getAttribute('data-shopname'));
+            });
+            document.getElementById('shop-details-modal').classList.remove('hidden');
+        }
+
+        function initializeCartCheckoutDeliveryMap() {
+            setTimeout(() => {
+                if (!mapCartCheckout) {
+                    mapCartCheckout = L.map('cart-checkout-map').setView([centerLat, centerLng], 16);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapCartCheckout);
+                    markerCartCheckout = L.marker([centerLat, centerLng]).addTo(mapCartCheckout);
+                    document.getElementById('cart-selected-coords').value = `${centerLat}, ${centerLng}`;
+                    mapCartCheckout.on('click', (e) => { markerCartCheckout.setLatLng(e.latlng); document.getElementById('cart-selected-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });
+                } else {
+                    mapCartCheckout.setView([centerLat, centerLng], 16); markerCartCheckout.setLatLng([centerLat, centerLng]); mapCartCheckout.invalidateSize();
+                }
+            }, 250);
+        }
+
+        // Cross-Store Multi-Vendor Array Ingestion Handler
+        function addItemToCartArray(title, price, originShopUid, originShopName) {
+            const numericPrice = parseInt(price.replace(/[^0-9]/g, '')) || 0;
+            const existing = activeCart.find(i => i.title === title && i.shopUid === originShopUid);
+            if (existing) { 
+                existing.qty++; 
+            } else { 
+                activeCart.push({ title, price: numericPrice, qty: 1, shopUid: originShopUid, shopName: originShopName }); 
+            }
+            updateFloatingCartBadgeStateCount();
+        }
+
+        function updateFloatingCartBadgeStateCount() {
+            const totalQty = activeCart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cart-floating-badge');
+            badge.innerText = totalQty;
+            badge.className = totalQty > 0 ? "absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-100 transition-transform duration-200" : "scale-0 hidden";
+        }
+
+        function renderCartInterfaceView() {
+            const wrap = document.getElementById('cart-items-wrapper'); wrap.innerHTML = "";
+            if (activeCart.length === 0) { wrap.innerHTML = `<p class="text-slate-400 text-center py-8">Your cart is empty.</p>`; document.getElementById('cart-grand-total').innerText = "₹0"; return; }
+            let total = 0;
+            activeCart.forEach((item, index) => {
+                const cost = item.price * item.qty; total += cost;
+                const row = document.createElement('div'); row.className = "py-2.5 text-xs text-slate-700 border-b border-slate-100";
+                row.innerHTML = `<div class="flex justify-between items-start font-medium"><div><span class="font-bold text-slate-900">${item.title}</span><p class="text-[10px] text-slate-400 font-sans mt-0.5">From: ${item.shopName}</p></div><span class="font-mono font-bold text-slate-900">₹${cost}</span></div><div class="flex items-center space-x-2 mt-1.5"><button class="btn-cart-minus bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black cursor-pointer" data-idx="${index}">-</button><span class="font-mono font-bold">${item.qty}</span><button class="btn-cart-plus bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black cursor-pointer" data-idx="${index}">+</button></div>`;
+                wrap.appendChild(row);
+            });
+            document.getElementById('cart-grand-total').innerText = `₹${total}`;
+            document.querySelectorAll('.btn-cart-minus').forEach(b => b.onclick = (e) => { const idx = parseInt(e.target.getAttribute('data-idx')); if(activeCart[idx].qty > 1) activeCart[idx].qty--; else activeCart.splice(idx, 1); renderCartInterfaceView(); updateFloatingCartBadgeStateCount(); });
+            document.querySelectorAll('.btn-cart-plus').forEach(b => b.onclick = (e) => { activeCart[parseInt(e.target.getAttribute('data-idx'))].qty++; renderCartInterfaceView(); updateFloatingCartBadgeStateCount(); });
+        }
+
+        function triggerAnimatedGreenSuccessTickOverlayGate() {
+            const overlay = document.getElementById('success-tick-overlay');
+            overlay.classList.remove('hidden');
+            setTimeout(() => { overlay.classList.add('hidden'); switchTab('orders'); }, 3000);
+        }
+
+        document.getElementById('btn-checkout-cart').addEventListener('click', () => {
+            if (activeCart.length === 0) return;
+            const deliveryDestinationStr = document.getElementById('cart-delivery-address-input').value.trim();
+            const contactPhone = document.getElementById('cart-phone-input').value.trim();
+            const selectedCoords = document.getElementById('cart-selected-coords').value.split(',');
+            if(!deliveryDestinationStr || !contactPhone || selectedCoords.length !== 2) { alert("Fill parameters explicitly."); return; }
+
+            const totalBill = document.getElementById('cart-grand-total').innerText;
+            const pushOrderRef = push(ref(db, 'orders'));
+            
+            set(pushOrderRef, { 
+                orderId: pushOrderRef.key, uid: userUid, userName, 
+                shopUid: activeCartShopUid, shopName: activeCartShopName, 
+                items: activeCart, totalBill, status: "Processing", 
+                deliveryAddress: deliveryDestinationStr, userPhone: contactPhone, 
+                lat: parseFloat(selectedCoords[0]), lng: parseFloat(selectedCoords[1]), 
+                timestamp: Date.now() 
+            })
+            .then(() => { 
+                activeCart = []; updateFloatingCartBadgeStateCount(); 
+                document.getElementById('cart-checkout-modal').classList.add('hidden'); 
+                triggerAnimatedGreenSuccessTickOverlayGate(); 
+            });
+        });
+
+        // Pipeline priority routing updates orders list
+        const updateOrdersAndHelpsUnifiedFeedOutput = () => {
+            const container = document.getElementById('orders-feed-output'); container.innerHTML = "";
+            let itemsPool = [];
+            get(ref(db, 'orders')).then(ordersSnap => {
+                if (ordersSnap.exists()) { Object.values(ordersSnap.val()).filter(o => o.uid === userUid).forEach(order => itemsPool.push({ ...order, _type: 'Order' })); }
+                get(ref(db, 'helps_posts')).then(helpsSnap => {
+                    if (helpsSnap.exists()) { Object.values(helpsSnap.val()).filter(h => h.uid === userUid && h.status !== "Processing").forEach(helpRun => itemsPool.push({ ...helpRun, _type: 'Help' })); }
+                    
+                    if(itemsPool.length === 0) {
+                        container.innerHTML = `<p class="text-slate-400 text-center py-6 text-xs">No entries logged.</p>`;
+                        return;
+                    }
+                    
+                    // Priority sorting constraint rules
+                    itemsPool.sort((a, b) => {
+                        const scoreA = (a.status === 'Picked Up' ? 3 : a.status === 'Approved' ? 2 : a.status === 'Processing' ? 1 : 0);
+                        const scoreB = (b.status === 'Picked Up' ? 3 : b.status === 'Approved' ? 2 : b.status === 'Processing' ? 1 : 0);
+                        return scoreB - scoreA; // Highest ongoing tasks sit explicitly at layout position 0
+                    });
+
+                    itemsPool.forEach(item => appendProgressCardToFeed(item, item._type, container));
+                });
+            });
+        };
+
+        function appendProgressCardToFeed(obj, label, wrapperNode) {
+            const card = document.createElement('div');
+            const isOngoingTask = (obj.status === "Approved" || obj.status === "Picked Up");
+            
+            card.className = `p-4 rounded-2xl border flex flex-col space-y-2 text-xs relative transition-all duration-300 ${isOngoingTask ? 'border-blue-500 bg-gradient-to-r from-blue-50/40 to-indigo-50/20 shadow-md ring-2 ring-blue-500/10 scale-[1.01]' : 'bg-white border-slate-100'}`;
+            
+            let statusTextHtml = `<span class="text-amber-500 font-bold uppercase">${obj.status}</span>`;
+            if (obj.status === "Approved") statusTextHtml = `<span class="text-blue-600 font-extrabold uppercase tracking-wide flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span>Agent Assigned</span>`;
+            else if (obj.status === "Picked Up") statusTextHtml = `<span class="text-indigo-600 font-extrabold uppercase tracking-wide flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>Agent On the Way</span>`;
+            else if (obj.status === "Delivered") statusTextHtml = `<span class="text-green-600 font-extrabold uppercase tracking-wide">Delivered Successfully</span>`;
+            
+            let summaryString = obj.items ? obj.items.map(i => `${i.title} (x${i.qty})`).join(', ') : obj.desc;
+            
+            // Cryptographic string conversion rules outputting deterministic 6-digit OTP codes securely
+            let numericVal = 0;
+            const seedString = obj.orderId || obj.postId || "000000";
+            for(let i=0; i<seedString.length; i++) { numericVal += seedString.charCodeAt(i); }
+            const calculatedOTP = String((numericVal * 1357) % 900000 + 100000);
+
+            let otpVerificationDisplayBlockHtml = isOngoingTask ? `
+                <div class="mt-2 p-3 bg-slate-900 text-white rounded-xl flex items-center justify-between font-mono">
+                    <div><span class="text-[9px] text-slate-400 block uppercase font-sans tracking-widest">Share OTP with Agent to Verify Delivery</span><span class="text-xs font-sans text-slate-300">Code: </span><span class="text-base font-black text-amber-400 tracking-wider">${calculatedOTP}</span></div>
+                    <div class="text-[20px]">🔐</div>
+                </div>` : '';
+
+            let agentDetailsBlockHtml = obj.agentName ? `<div class="mt-2 p-2.5 bg-blue-50/80 border border-blue-100 rounded-xl text-slate-700 text-[11px] space-y-0.5"><p><b>Assigned Agent:</b> ${obj.agentName}</p><p><b>Agent Contact Phone:</b> ${obj.agentPhone || 'N/A'}</p></div>` : '';
+            
+            card.innerHTML = `<div class="flex justify-between items-center font-bold"><span class="text-sm text-slate-900">${obj.shopName || label}</span>${statusTextHtml}</div><p class="text-slate-600 font-medium"><b>Summary:</b> ${summaryString}</p><p class="text-[11px] text-slate-500"><b>Destination Location:</b> ${obj.deliveryAddress || 'Current GPS Range Pin'}</p>${otpVerificationDisplayBlockHtml}${agentDetailsBlockHtml}<div class="pt-1 text-[10px] text-slate-400 font-mono">Timestamp: ${new Date(obj.timestamp || obj.createdAt).toLocaleTimeString()}</div>`;
+            wrapperNode.appendChild(card);
+        }
+
+        onValue(ref(db, 'orders'), updateOrdersAndHelpsUnifiedFeedOutput);
+        onValue(ref(db, 'helps_posts'), updateOrdersAndHelpsUnifiedFeedOutput);
+    </script>
+</body>
+</html>

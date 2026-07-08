@@ -6,21 +6,57 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .map-normal-size {
+            height: 10rem;
+            width: 100%;
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .map-fullscreen-size {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 150 !important;
+            border-radius: 0rem !important;
+        }
+    </style>
 </head>
-<body class="bg-white text-slate-800 p-4 font-sans min-h-screen relative pb-24">
+<body class="bg-slate-50 text-slate-800 p-4 font-sans min-h-screen relative pb-24">
 
-    <div class="flex items-center space-x-2 mb-6 border-b pb-4 border-slate-100">
-        <button id="tab-helps-btn" class="px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-blue-600 text-white shadow-md cursor-pointer">Helps Feed</button>
-        <button id="tab-grocery-btn" class="px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">Food & Grocery</button>
-        <button id="tab-orders-btn" class="px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">My Orders</button>
+    <!-- Accessible High-Contrast Navigation Bar -->
+    <div class="flex items-center justify-between gap-2 p-2 bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 max-w-2xl mx-auto">
+        <button id="tab-grocery-btn" class="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-blue-600 text-white shadow-md">
+            <span class="text-xl sm:text-2xl">🛒</span>
+            <span>Food & Grocery</span>
+        </button>
+        <button id="tab-helps-btn" class="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200">
+            <span class="text-xl sm:text-2xl">🆘</span>
+            <span>Helps Feed</span>
+        </button>
+        <button id="tab-orders-btn" class="flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200">
+            <span class="text-xl sm:text-2xl">📦</span>
+            <span>My Orders</span>
+        </button>
     </div>
 
-    <div id="view-helps" class="space-y-4"><div id="helps-feed-output" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
-    <div id="view-grocery" class="hidden space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div></div>
+    <!-- Live Dynamic Tabs View Channels -->
+    <div id="view-grocery" class="space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div></div>
+    <div id="view-helps" class="hidden space-y-4"><div id="helps-feed-output" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
     
     <div id="view-orders" class="hidden space-y-4">
-        <h3 class="text-sm font-black uppercase tracking-wider text-slate-400 mb-2">My Placed Assistance Calls & Orders Feed</h3>
+        <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">My Placed Assistance Calls & Orders Feed</h3>
         <div id="orders-feed-output" class="space-y-3"></div>
+    </div>
+
+    <!-- Centered Operational Message Notification Alert Overlay Box -->
+    <div id="center-toast-overlay" class="hidden fixed inset-0 z-[250] pointer-events-none flex items-center justify-center p-4">
+        <div id="center-toast-box" class="bg-slate-900/95 text-white backdrop-blur-md font-bold text-center px-6 py-4 rounded-2xl shadow-2xl max-w-xs sm:max-w-md transform transition-all duration-300 scale-95 opacity-0 flex flex-col items-center gap-2 border border-white/10">
+            <span id="center-toast-icon" class="text-3xl">✨</span>
+            <p id="center-toast-text" class="text-sm sm:text-base leading-relaxed"></p>
+        </div>
     </div>
 
     <div id="success-tick-overlay" class="hidden fixed inset-0 bg-slate-900/70 z-[200] flex flex-col items-center justify-center animate-fade-in">
@@ -112,7 +148,7 @@
                 <input type="text" id="help-fullname" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-semibold" placeholder="Your Full Name">
                 
                 <div id="trigger-help-map-fs" class="h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition">
-                    <span class="text-xl">🗺️</span>
+                    <span class="text-xl">AM bulance 🚑</span>
                     <span class="text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>
                     <span class="text-[10px] text-slate-400">Required to pinpoint location coordinates</span>
                 </div>
@@ -165,7 +201,6 @@
         const db = getDatabase(app);
 
         const params = new URLSearchParams(window.location.search);
-        
         const userUid = params.get('uid') || params.get('userUid') || "Anonymous_Node"; 
         const userName = params.get('name') ? decodeURIComponent(params.get('name')) : "";
         const userAadharStatus = params.get('aadharStatus') || "Unverified";
@@ -174,8 +209,8 @@
         const profileSavedAddress = params.get('savedAddress') ? decodeURIComponent(params.get('savedAddress')) : "";
         const userContactPhone = params.get('phone') ? decodeURIComponent(params.get('phone')) : "";
 
-        let globalFsMapInstance = null, globalFsMarkerInstance = null, targetCoordFieldId = null;
-        let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "helps";
+        let globalFsMapInstance = null, globalFsMarkerInstance = null, targetCoordFieldId = null, currentlyOpenShopObject = null;
+        let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "grocery";
 
         const mapTileProviderUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
@@ -190,8 +225,8 @@
             document.getElementById('cart-delivery-address-input').value = profileSavedAddress;
         }
 
-        document.getElementById('tab-helps-btn').addEventListener('click', () => switchTab('helps'));
         document.getElementById('tab-grocery-btn').addEventListener('click', () => switchTab('grocery'));
+        document.getElementById('tab-helps-btn').addEventListener('click', () => switchTab('helps'));
         document.getElementById('tab-orders-btn').addEventListener('click', () => switchTab('orders'));
 
         document.getElementById('btn-floating-cart').addEventListener('click', () => {
@@ -203,12 +238,32 @@
 
         function switchTab(t) {
             currentActiveViewTab = t;
-            ['helps', 'grocery', 'orders'].forEach(v => {
-                document.getElementById(`tab-${v}-btn`).className = "px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-slate-100 text-slate-600 cursor-pointer";
+            ['grocery', 'helps', 'orders'].forEach(v => {
+                document.getElementById(`tab-${v}-btn`).className = "flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-slate-100 text-slate-600";
                 document.getElementById(`view-${v}`).classList.add('hidden');
             });
-            document.getElementById(`tab-${t}-btn`).className = "px-5 py-2 rounded-full text-xs font-bold tracking-wide transition bg-blue-600 text-white shadow-md cursor-pointer";
+            document.getElementById(`tab-${t}-btn`).className = "flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-4 py-3 rounded-xl text-sm sm:text-base font-black tracking-wide transition-all cursor-pointer bg-blue-600 text-white shadow-md";
             document.getElementById(`view-${t}`).classList.remove('hidden');
+        }
+
+        // --- NEW MID SCREEN ALERT DISPATCH NOTIFIER ---
+        function displayCenterScreenToast(message, emojiIcon = "✨") {
+            const overlay = document.getElementById('center-toast-overlay');
+            const box = document.getElementById('center-toast-box');
+            document.getElementById('center-toast-icon').innerText = emojiIcon;
+            document.getElementById('center-toast-text').innerText = message;
+
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+
+            setTimeout(() => {
+                box.classList.remove('scale-100', 'opacity-100');
+                box.classList.add('scale-95', 'opacity-0');
+                setTimeout(() => { overlay.classList.add('hidden'); }, 3000);
+            }, 3000);
         }
 
         document.getElementById('btn-floating-action').addEventListener('click', () => {
@@ -216,6 +271,7 @@
             
             document.getElementById('action-modal-overlay').classList.remove('hidden');
             document.getElementById('form-tab-header').classList.add('hidden');
+            initializeFormMaps();
 
             if (currentActiveViewTab === "grocery") {
                 document.getElementById('form-shop-block').classList.remove('hidden'); 
@@ -227,7 +283,6 @@
             }
         });
 
-        // --- FIXED NEW OVERLAY ROUTERS ATTACHING ACTION CLICK TRIGGERS ---
         document.getElementById('trigger-help-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('help-coords'));
         document.getElementById('trigger-shop-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('shop-coords'));
         document.getElementById('btn-close-fs-map').addEventListener('click', closeUnifiedFullscreenMapEngine);
@@ -251,17 +306,6 @@
                     globalFsMarkerInstance.setLatLng([centerLat, centerLng]);
                     globalFsMapInstance.invalidateSize();
                 }
-                
-                // Read current values into map if already tracked
-                const currentVals = document.getElementById(targetCoordFieldId).value.split(',');
-                if(currentVals.length === 2) {
-                    const parsedLats = parseFloat(currentVals[0]);
-                    const parsedLngs = parseFloat(currentVals[1]);
-                    if(!isNaN(parsedLats) && !isNaN(parsedLngs)) {
-                        globalFsMapInstance.setView([parsedLats, parsedLngs], 16);
-                        globalFsMarkerInstance.setLatLng([parsedLats, parsedLngs]);
-                    }
-                }
             }, 50);
         }
 
@@ -269,7 +313,6 @@
             document.getElementById('fullscreen-map-wrapper').classList.add('hidden');
             const targetDisplayField = document.getElementById(targetCoordFieldId);
             
-            // visually update row boxes showing success state tracking info
             if(targetCoordFieldId === 'help-coords' && targetDisplayField.value) {
                 document.getElementById('trigger-help-map-fs').className = "h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
                 document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-xl">✅</span><span class="text-xs font-bold text-green-700 mt-1">Location Node Locked Successfully</span>`;
@@ -296,18 +339,20 @@
                 submitBtn.innerText = "Submit Application for Review";
                 submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow";
                 currentShopItems = []; document.getElementById('added-items-list').innerHTML = "";
-                // Reset store upload indicators text layout mappings
                 document.getElementById('trigger-shop-map-fs').className = "h-28 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
-                document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-xl"> juice box 🏬</span><span class="text-xs font-bold text-emerald-700 mt-1">Tap to Open Store Location Map Fullscreen</span>`;
+                document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-xl">🏬</span><span class="text-xs font-bold text-emerald-700 mt-1">Tap to Open Store Location Map Fullscreen</span>`;
             }
         }
 
         document.getElementById('btn-close-action-modal').addEventListener('click', () => {
             document.getElementById('action-modal-overlay').classList.add('hidden');
             document.getElementById('trigger-help-map-fs').className = "h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
-            document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-xl">🗺️</span><span class="text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>`;
+            document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-xl">🚑</span><span class="text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>`;
         });
-        document.getElementById('btn-close-shop-modal').addEventListener('click', () => document.getElementById('shop-details-modal').classList.add('hidden'));
+        document.getElementById('btn-close-shop-modal').addEventListener('click', () => {
+            document.getElementById('shop-details-modal').classList.add('hidden');
+            currentlyOpenShopObject = null;
+        });
 
         document.getElementById('btn-add-subitem').addEventListener('click', () => {
             const t = document.getElementById('item-title').value.trim(); const p = document.getElementById('item-price').value.trim();
@@ -356,7 +401,9 @@
             .then(() => {
                 document.getElementById('help-desc').value = "";
                 document.getElementById('action-modal-overlay').classList.add('hidden');
-                alert("Assistance request published smoothly on agent radar tracking terminals!");
+                
+                // --- NEW HELPS TIMEOUT MID SCREEN TEXT ALERT ---
+                displayCenterScreenToast("Your help request is active. Wait for the agent to accept your help.", "⏳");
                 switchTab('orders');
             })
             .catch((err) => alert("Database Error: " + err.message));
@@ -416,19 +463,76 @@
             document.querySelectorAll('.btn-trigger-edit-shop').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); prepareShopFormLayoutUI("edit", snapshot.val()[btn.getAttribute('data-uid')]); document.getElementById('action-modal-overlay').classList.remove('hidden'); document.getElementById('form-shop-block').classList.remove('hidden'); document.getElementById('form-help-block').classList.add('hidden'); });
         });
 
+        // --- NEW: DYNAMIC MODAL RE-RENDER ENGINE SUPPORTING INLINE - / + OPTIONS ---
         function openShopDetailsModal(shop) {
+            currentlyOpenShopObject = shop;
             document.getElementById('modal-shop-name').innerText = shop.shopName;
             document.getElementById('modal-shop-meta').innerText = `Owner: ${shop.ownerName}`;
+            renderShopModalItemsGrid();
+            document.getElementById('shop-details-modal').classList.remove('hidden');
+        }
+
+        function renderShopModalItemsGrid() {
+            if(!currentlyOpenShopObject) return;
             const grid = document.getElementById('modal-items-grid'); grid.innerHTML = "";
-            shop.items.forEach((item) => {
+            
+            currentlyOpenShopObject.items.forEach((item, index) => {
                 const div = document.createElement('div'); div.className = "bg-slate-50 rounded-2xl p-3 border border-slate-100 flex flex-col justify-between space-y-2";
-                div.innerHTML = `<img src="${item.imgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300'}" class="h-24 w-full object-cover rounded-xl"><div class="flex justify-between items-center text-xs font-bold"><span class="truncate">${item.title}</span><span class="text-blue-600">₹${item.price}</span></div><button class="btn-add-to-cart bg-slate-900 text-white text-[10px] font-black py-1.5 rounded-xl uppercase tracking-wider cursor-pointer shadow-xs" data-shopuid="${shop.uid}" data-shopname="${shop.shopName}" data-title="${item.title}" data-price="${item.price}">Add to Basket</button>`;
+                
+                // Locate item status inside local basket matrix
+                const cartMatch = activeCart.find(i => i.title === item.title && i.shopUid === currentlyOpenShopObject.uid);
+                let buttonInteractiveMarkup = "";
+
+                if (cartMatch) {
+                    buttonInteractiveMarkup = `
+                        <div class="flex items-center justify-between bg-slate-900 rounded-xl p-1 text-white text-xs font-black">
+                            <button class="px-3 py-1 bg-slate-800 rounded-lg hover:bg-slate-700 btn-modal-minus" data-idx="${index}" data-title="${item.title}">-</button>
+                            <span class="font-mono text-center min-w-[20px]">${cartMatch.qty}</span>
+                            <button class="px-3 py-1 bg-slate-800 rounded-lg hover:bg-slate-700 btn-modal-plus" data-idx="${index}" data-title="${item.title}">+</button>
+                        </div>`;
+                } else {
+                    buttonInteractiveMarkup = `<button class="btn-add-to-cart bg-slate-900 text-white text-[10px] font-black py-2 rounded-xl uppercase tracking-wider cursor-pointer shadow-xs w-full" data-shopuid="${currentlyOpenShopObject.uid}" data-shopname="${currentlyOpenShopObject.shopName}" data-title="${item.title}" data-price="${item.price}">Add to Basket</button> `;
+                }
+
+                div.innerHTML = `<img src="${item.imgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300'}" class="h-24 w-full object-cover rounded-xl"><div class="flex justify-between items-center text-xs font-bold"><span class="truncate">${item.title}</span><span class="text-blue-600">₹${item.price}</span></div><div class="w-full">${buttonInteractiveMarkup}</div>`;
                 grid.appendChild(div);
             });
+
+            // Re-bind inline actions dynamically
             document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
-                btn.onclick = (e) => addItemToCartArray(e.target.getAttribute('data-title'), e.target.getAttribute('data-price'), e.target.getAttribute('data-shopuid'), e.target.getAttribute('data-shopname'));
+                btn.onclick = (e) => {
+                    const t = e.target.getAttribute('data-title');
+                    const p = e.target.getAttribute('data-price');
+                    const sUid = e.target.getAttribute('data-shopuid');
+                    const sName = e.target.getAttribute('data-shopname');
+                    addItemToCartArray(t, p, sUid, sName);
+                    displayCenterScreenToast("The item is added to the kart", "🛒");
+                    renderShopModalItemsGrid(); // redraw controls instantly
+                };
             });
-            document.getElementById('shop-details-modal').classList.remove('hidden');
+
+            document.querySelectorAll('.btn-modal-minus').forEach(btn => {
+                btn.onclick = (e) => {
+                    const t = e.target.getAttribute('data-title');
+                    const idx = activeCart.findIndex(i => i.title === t && i.shopUid === currentlyOpenShopObject.uid);
+                    if (idx !== -1) {
+                        if (activeCart[idx].qty > 1) activeCart[idx].qty--;
+                        else activeCart.splice(idx, 1);
+                    }
+                    updateFloatingCartBadgeStateCount();
+                    renderShopModalItemsGrid();
+                };
+            });
+
+            document.querySelectorAll('.btn-modal-plus').forEach(btn => {
+                btn.onclick = (e) => {
+                    const t = e.target.getAttribute('data-title');
+                    const match = activeCart.find(i => i.title === t && i.shopUid === currentlyOpenShopObject.uid);
+                    if (match) match.qty++;
+                    updateFloatingCartBadgeStateCount();
+                    renderShopModalItemsGrid();
+                };
+            });
         }
 
         function initializeCartCheckoutDeliveryMap() {

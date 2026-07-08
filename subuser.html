@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sub User Hub</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -25,30 +24,30 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 p-2 sm:p-4 font-sans min-h-screen relative pb-24">
+<body class="bg-slate-50 text-slate-800 p-4 font-sans min-h-screen relative pb-24">
 
-    <div class="max-w-xl mx-auto mb-4 sm:mb-6">
-        <div class="flex items-center bg-white p-1 rounded-full shadow-sm border border-slate-200/60">
+    <div class="max-w-xl mx-auto mb-6">
+        <div class="flex items-center bg-white p-1.5 rounded-full shadow-sm border border-slate-200/60 divide-x divide-slate-100">
             
-            <button id="tab-grocery-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black">
-                <span class="text-lg sm:text-xl mb-0.5">🛒</span>
-                <span class="text-[10px] sm:text-xs tracking-wide">Grocery</span>
+            <button id="tab-grocery-btn" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black">
+                <span class="text-xl mb-0.5">🛒</span>
+                <span class="text-xs sm:text-sm tracking-wide">Food & Grocery</span>
             </button>
             
-            <button id="tab-helps-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
-                <span class="text-lg sm:text-xl mb-0.5">🆘</span>
-                <span class="text-[10px] sm:text-xs tracking-wide">Helps</span>
+            <button id="tab-helps-btn" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
+                <span class="text-xl mb-0.5">🆘</span>
+                <span class="text-xs sm:text-sm tracking-wide">Helps Feed</span>
             </button>
             
-            <button id="tab-orders-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
-                <span class="text-lg sm:text-xl mb-0.5">📦</span>
-                <span class="text-[10px] sm:text-xs tracking-wide">Orders</span>
+            <button id="tab-orders-btn" class="flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
+                <span class="text-xl mb-0.5">📦</span>
+                <span class="text-xs sm:text-sm tracking-wide">My Orders</span>
             </button>
 
         </div>
     </div>
 
-    <div id="view-grocery" class="space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:grid-cols-3 sm:gap-6"></div></div>
+    <div id="view-grocery" class="space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div></div>
     <div id="view-helps" class="hidden space-y-4"><div id="helps-feed-output" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
     
     <div id="view-orders" class="hidden space-y-4">
@@ -56,91 +55,92 @@
         <div id="orders-feed-output" class="space-y-3"></div>
     </div>
 
+    <div id="view-alerts-wrapper" class="hidden text-center max-w-xs sm:max-w-md border border-white/10"></div>
     <div id="center-toast-overlay" class="hidden fixed inset-0 z-[250] pointer-events-none flex items-center justify-center p-4">
-        <div id="center-toast-box" class="bg-slate-900/95 text-white backdrop-blur-md font-bold text-center px-4 py-3 sm:px-6 sm:py-4 rounded-2xl shadow-2xl max-w-xs sm:max-w-md transform transition-all duration-300 scale-95 opacity-0 flex flex-col items-center gap-2 border border-white/10">
-            <span id="center-toast-icon" class="text-2xl sm:text-3xl">✨</span>
-            <p id="center-toast-text" class="text-xs sm:text-sm leading-relaxed"></p>
+        <div id="center-toast-box" class="bg-slate-900/95 text-white backdrop-blur-md font-bold text-center px-6 py-4 rounded-2xl shadow-2xl max-w-xs sm:max-w-md transform transition-all duration-300 scale-95 opacity-0 flex flex-col items-center gap-2 border border-white/10">
+            <span id="center-toast-icon" class="text-3xl">✨</span>
+            <p id="center-toast-text" class="text-sm sm:text-base leading-relaxed"></p>
         </div>
     </div>
 
     <div id="success-tick-overlay" class="hidden fixed inset-0 bg-slate-900/70 z-[200] flex flex-col items-center justify-center animate-fade-in">
-        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-xs mx-4">
-            <div class="w-14 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-black mb-4">✓</div>
-            <h4 class="text-lg sm:text-xl font-black text-slate-900">Order Placed!</h4>
+        <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-xs mx-4">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-3xl font-black mb-4">✓</div>
+            <h4 class="text-xl font-black text-slate-900">Order Placed!</h4>
             <p class="text-xs text-slate-500 mt-1 leading-relaxed">Your order has been logged. Checking for local delivery agents near your range node coordinates...</p>
         </div>
     </div>
 
     <div id="shop-pending-overlay" class="hidden fixed inset-0 bg-slate-900/70 z-[200] flex flex-col items-center justify-center">
-        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-md mx-4 border border-slate-100">
-            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl sm:text-3xl mb-4">⏳</div>
-            <h4 class="text-lg sm:text-xl font-black text-slate-900">Verification Request Received</h4>
+        <div class="bg-white p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-md mx-4 border border-slate-100">
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-3xl mb-4">⏳</div>
+            <h4 class="text-xl font-black text-slate-900">Verification Request Received</h4>
             <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">It will take up to <b>24 hours</b> to verify and approve your shop. Please wait, our customer support agent will call and verify your credentials shortly.</p>
             <button onclick="document.getElementById('shop-pending-overlay').classList.add('hidden')" class="mt-5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer">Understood</button>
         </div>
     </div>
 
-    <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex items-center space-x-2 sm:space-x-3 z-40">
-        <button id="btn-floating-cart" class="w-12 h-12 sm:w-14 sm:h-14 bg-slate-900 text-white rounded-full text-lg sm:text-xl shadow-xl flex items-center justify-center relative cursor-pointer group hover:scale-105 transition-all">
+    <div class="fixed bottom-6 right-6 flex items-center space-x-3 z-40">
+        <button id="btn-floating-cart" class="w-14 h-14 bg-slate-900 text-white rounded-full text-xl shadow-xl flex items-center justify-center relative cursor-pointer group hover:scale-105 transition-all">
             🛒
-            <span id="cart-floating-badge" class="absolute -top-1 -right-1 bg-red-500 text-white font-black text-[9px] sm:text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-0 transition-transform duration-200">0</span>
+            <span id="cart-floating-badge" class="absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-0 transition-transform duration-200">0</span>
         </button>
-        <button id="btn-floating-action" class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full text-xl sm:text-2xl font-black shadow-xl flex items-center justify-center cursor-pointer hover:scale-105 transition-all">+</button>
+        <button id="btn-floating-action" class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full text-2xl font-black shadow-xl flex items-center justify-center cursor-pointer hover:scale-105 transition-all">+</button>
     </div>
 
     <div id="fullscreen-map-wrapper" class="hidden fixed inset-0 bg-slate-950 z-[300] flex flex-col">
-        <div class="bg-white p-3 sm:p-4 border-b flex justify-between items-center shadow relative z-10">
+        <div class="bg-white p-4 border-b flex justify-between items-center shadow relative z-10">
             <div>
-                <h3 class="font-black text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">📍 Tap to Confirm Location</h3>
-                <p class="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">Drag map or click precise target layout point</p>
+                <h3 class="font-black text-slate-900 text-sm flex items-center gap-2">📍 Tap to Confirm Selection Location</h3>
+                <p class="text-[10px] text-slate-400 mt-0.5">Drag map or click precise target layout node point anywhere</p>
             </div>
-            <button id="btn-close-fs-map" class="bg-slate-900 text-white font-bold text-[11px] sm:text-xs px-3 sm:px-4 py-2 rounded-xl hover:bg-slate-800 cursor-pointer shadow">Confirm Location</button>
+            <button id="btn-close-fs-map" class="bg-slate-900 text-white font-bold text-xs px-4 py-2 rounded-xl hover:bg-slate-800 cursor-pointer shadow">Confirm Node Coordinates</button>
         </div>
         <div class="flex-grow w-full h-full bg-slate-200" id="fs-map-canvas"></div>
     </div>
 
-    <div id="shop-details-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[50] flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-3xl h-[80vh] sm:h-[75vh] shadow-2xl relative flex flex-col">
-            <button id="btn-close-shop-modal" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
-            <div class="border-b pb-2 mb-3"><h3 id="modal-shop-name" class="font-black text-slate-900 text-lg sm:text-xl">Shop Items</h3><p id="modal-shop-meta" class="text-[11px] sm:text-xs text-slate-400"></p></div>
+    <div id="shop-details-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[50] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-3xl h-[75vh] shadow-2xl relative flex flex-col">
+            <button id="btn-close-shop-modal" class="absolute top-4 right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+            <div class="border-b pb-2 mb-3"><h3 id="modal-shop-name" class="font-black text-slate-900 text-xl">Shop Items</h3><p id="modal-shop-meta" class="text-xs text-slate-400"></p></div>
             <div id="modal-items-grid" class="flex-grow overflow-y-auto space-y-3 grid grid-cols-1 sm:grid-cols-2 gap-3 content-start"></div>
         </div>
     </div>
 
-    <div id="cart-checkout-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[60] flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-md h-[90vh] sm:h-[85vh] shadow-2xl relative flex flex-col justify-between">
-            <button id="btn-close-cart-modal" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
-            <div class="flex-grow overflow-y-auto pr-1 space-y-3 min-h-0">
-                <h4 class="font-black text-slate-800 text-xs sm:text-sm uppercase tracking-wider border-b pb-2">🛒 Unified Shopping Cart</h4>
+    <div id="cart-checkout-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md h-[85vh] shadow-2xl relative flex flex-col justify-between">
+            <button id="btn-close-cart-modal" class="absolute top-4 right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+            <div class="flex-grow overflow-y-auto pr-1 space-y-4 min-h-0">
+                <h4 class="font-black text-slate-800 text-sm uppercase tracking-wider border-b pb-2">🛒 Network Unified Shopping Cart</h4>
                 <div id="cart-items-wrapper" class="space-y-2 text-xs divide-y divide-slate-100"></div>
                 
-                <div class="space-y-2 text-xs pt-1">
+                <div class="space-y-2 text-xs pt-2">
                     <div>
-                        <label class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Confirm Phone Number</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Confirm Phone Number</label>
                         <input type="tel" id="cart-phone-input" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:outline-blue-500 text-slate-800">
                     </div>
                     <div>
-                        <label class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Delivery Address Destination</label>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Delivery Address Destination</label>
                         <textarea id="cart-delivery-address-input" rows="2" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-blue-500 text-slate-700" placeholder="Type text address destination..."></textarea>
                     </div>
                     <div class="space-y-1">
-                        <label class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Pinpoint Delivery Spot on Map</label>
-                        <div id="cart-checkout-map" class="h-24 sm:h-28 w-full bg-slate-100 rounded-xl border border-slate-200 overflow-hidden relative"></div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Pinpoint Delivery Spot on Map</label>
+                        <div id="cart-checkout-map" class="h-28 w-full bg-slate-100 rounded-xl border border-slate-200 overflow-hidden relative"></div>
                         <input type="text" id="cart-selected-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono text-slate-500 rounded-lg text-center" placeholder="Click map to lock coordinates">
                     </div>
                 </div>
             </div>
-            <div class="border-t pt-2 space-y-1.5 bg-white">
-                <div class="flex justify-between font-black text-xs sm:text-sm text-slate-900"><span>Grand Total Bill:</span><span id="cart-grand-total">₹0</span></div>
-                <p class="text-[9px] sm:text-[10px] text-emerald-600 font-bold bg-emerald-50 p-1 rounded text-center">Payment Method: Cash on Delivery (COD) Only</p>
-                <button id="btn-checkout-cart" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-2.5 sm:py-3 rounded-xl transition cursor-pointer">Book Order (Place COD)</button>
+            <div class="border-t pt-3 space-y-2 bg-white">
+                <div class="flex justify-between font-black text-sm text-slate-900"><span>Grand Total Bill:</span><span id="cart-grand-total">₹0</span></div>
+                <p class="text-[10px] text-emerald-600 font-bold bg-emerald-50 p-1.5 rounded text-center">Payment Method: Cash on Delivery (COD) Only</p>
+                <button id="btn-checkout-cart" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-3 rounded-xl transition cursor-pointer">Book Order (Place COD)</button>
             </div>
         </div>
     </div>
 
-    <div id="action-modal-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-lg shadow-2xl relative border max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
-            <button id="btn-close-action-modal" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+    <div id="action-modal-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-lg shadow-2xl relative border max-h-[90vh] overflow-y-auto">
+            <button id="btn-close-action-modal" class="absolute top-4 right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
             
             <div id="form-tab-header" class="hidden flex border-b pb-2 mb-4 space-x-4 text-sm font-bold">
                 <button id="form-help-tab" class="text-blue-600 border-b-2 border-blue-600 pb-1">Request Help</button>
@@ -148,13 +148,13 @@
             </div>
             
             <div id="form-help-block" class="space-y-3">
-                <div class="flex items-center gap-1.5 mb-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span><h3 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">Request Emergency Assistance</h3></div>
+                <div class="flex items-center gap-2 mb-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span><h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Request Emergency Assistance</h3></div>
                 <input type="text" id="help-fullname" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-semibold" placeholder="Your Full Name">
                 
-                <div id="trigger-help-map-fs" class="h-24 sm:h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-3 cursor-pointer transition">
-                    <span class="text-lg sm:text-xl">🚑</span>
-                    <span class="text-[11px] sm:text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>
-                    <span class="text-[9px] sm:text-[10px] text-slate-400">Required to pinpoint location coordinates</span>
+                <div id="trigger-help-map-fs" class="h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition">
+                    <span class="text-xl">🚑</span>
+                    <span class="text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>
+                    <span class="text-[10px] text-slate-400">Required to pinpoint location coordinates</span>
                 </div>
 
                 <input type="text" id="help-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center" placeholder="Click map area block above to select coordinates">
@@ -168,18 +168,18 @@
                 <input type="text" id="shop-name" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-bold" placeholder="Restaurant or Shop Title Name">
                 <div id="shop-map-fields-wrapper" class="space-y-2">
                     
-                    <div id="trigger-shop-map-fs" class="h-24 sm:h-28 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-3 cursor-pointer transition">
-                        <span class="text-lg sm:text-xl">🏬</span>
-                        <span class="text-[11px] sm:text-xs font-bold text-emerald-700 mt-1">Tap to Open Store Location Map Fullscreen</span>
-                        <span class="text-[9px] sm:text-[10px] text-slate-400">Required to finalize delivery ranges</span>
+                    <div id="trigger-shop-map-fs" class="h-28 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition">
+                        <span class="text-xl">🏬</span>
+                        <span class="text-xs font-bold text-emerald-700 mt-1">Tap to Open Store Location Map Fullscreen</span>
+                        <span class="text-[10px] text-slate-400">Required to finalize delivery ranges</span>
                     </div>
 
                     <input type="text" id="shop-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center" placeholder="Click map area block above to select coordinates">
                 </div>
                 <div class="border p-3 rounded-xl bg-slate-50 space-y-2">
-                    <span class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider text-slate-400 block border-b pb-1">Manage Menu Directory Items (Max 50)</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block border-b pb-1">Manage Menu Directory Items (Max 50)</span>
                     <div class="flex gap-2"><input type="text" id="item-title" class="flex-1 p-2 bg-white border rounded-lg text-xs" placeholder="Item Name"><input type="text" id="item-price" class="w-20 p-2 bg-white border rounded-lg text-xs text-center" placeholder="₹180"><button id="btn-add-subitem" class="bg-slate-800 text-white px-3 rounded-lg font-black text-sm cursor-pointer">+</button></div>
-                    <ul id="added-items-list" class="text-xs space-y-1 max-h-32 overflow-y-auto divide-y divide-slate-100 pt-1"></ul>
+                    <ul id="added-items-list" class="text-xs space-y-1 max-h-36 overflow-y-auto divide-y divide-slate-100 pt-1"></ul>
                 </div>
                 <button id="btn-submit-shop" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow">Submit Application for Review</button>
             </div>
@@ -215,9 +215,6 @@
 
         let globalFsMapInstance = null, globalFsMarkerInstance = null, targetCoordFieldId = null, currentlyOpenShopObject = null;
         let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "grocery";
-        
-        // Declared map instance tokens for checkout map tracking scope
-        let mapCartCheckout = null, markerCartCheckout = null;
 
         const mapTileProviderUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
@@ -243,13 +240,14 @@
         });
         document.getElementById('btn-close-cart-modal').addEventListener('click', () => document.getElementById('cart-checkout-modal').classList.add('hidden'));
 
+        // --- UPDATED PILL TRANSITION SELECTORS ---
         function switchTab(t) {
             currentActiveViewTab = t;
             ['grocery', 'helps', 'orders'].forEach(v => {
-                document.getElementById(`tab-${v}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold";
+                document.getElementById(`tab-${v}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold";
                 document.getElementById(`view-${v}`).classList.add('hidden');
             });
-            document.getElementById(`tab-${t}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black";
+            document.getElementById(`tab-${t}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2.5 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black";
             document.getElementById(`view-${t}`).classList.remove('hidden');
         }
 
@@ -319,11 +317,11 @@
             const targetDisplayField = document.getElementById(targetCoordFieldId);
             
             if(targetCoordFieldId === 'help-coords' && targetDisplayField.value) {
-                document.getElementById('trigger-help-map-fs').className = "h-24 sm:h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-3 transition";
-                document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-lg">✅</span><span class="text-xs font-bold text-green-700 mt-1">Location Node Locked</span>`;
+                document.getElementById('trigger-help-map-fs').className = "h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
+                document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-xl">✅</span><span class="text-xs font-bold text-green-700 mt-1">Location Node Locked Successfully</span>`;
             } else if(targetCoordFieldId === 'shop-coords' && targetDisplayField.value) {
-                document.getElementById('trigger-shop-map-fs').className = "h-24 sm:h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-3 transition";
-                document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-lg">✅</span><span class="text-xs font-bold text-green-700 mt-1">Store Coordinates Saved</span>`;
+                document.getElementById('trigger-shop-map-fs').className = "h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
+                document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-xl">✅</span><span class="text-xs font-bold text-green-700 mt-1">Store Coordinates Saved</span>`;
             }
         }
 
@@ -344,15 +342,15 @@
                 submitBtn.innerText = "Submit Application for Review";
                 submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow";
                 currentShopItems = []; document.getElementById('added-items-list').innerHTML = "";
-                document.getElementById('trigger-shop-map-fs').className = "h-24 sm:h-28 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-3 transition";
-                document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-lg sm:text-xl">🏬</span><span class="text-[11px] sm:text-xs font-bold text-emerald-700 mt-1">Tap to Open Store Location Map Fullscreen</span>`;
+                document.getElementById('trigger-shop-map-fs').className = "h-28 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
+                document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-xl">🏬</span><span class="text-xs font-bold text-emerald-700 mt-1">Tap to Open Store Location Map Fullscreen</span>`;
             }
         }
 
         document.getElementById('btn-close-action-modal').addEventListener('click', () => {
             document.getElementById('action-modal-overlay').classList.add('hidden');
-            document.getElementById('trigger-help-map-fs').className = "h-24 sm:h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-3 transition";
-            document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-lg sm:text-xl">🚑</span><span class="text-[11px] sm:text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>`;
+            document.getElementById('trigger-help-map-fs').className = "h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-4 cursor-pointer transition";
+            document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-xl">🚑</span><span class="text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>`;
         });
         document.getElementById('btn-close-shop-modal').addEventListener('click', () => {
             document.getElementById('shop-details-modal').classList.add('hidden');
@@ -458,9 +456,9 @@
             list.forEach(s => {
                 const dist = calculateDistance(centerLat, centerLng, s.lat, s.lng); if (dist > 10 && s.uid !== userUid) return;
                 const isMyOwnStoreNode = (s.uid === userUid);
-                const card = document.createElement('div'); card.className = `rounded-2xl sm:rounded-3xl overflow-hidden border flex flex-col shadow-xs relative ${isMyOwnStoreNode ? 'border-indigo-400 bg-indigo-50/20 ring-4 ring-indigo-500/5' : 'bg-white border-slate-100'}`;
-                let editBtnMarkup = isMyOwnStoreNode ? `<button class="btn-trigger-edit-shop absolute top-2 right-2 z-20 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg transition shadow cursor-pointer" data-uid="${s.uid}">Edit Inventory</button>` : '';
-                card.innerHTML = `${editBtnMarkup}<div class="shop-card-clickable-area cursor-pointer" data-uid="${s.uid}"><img src="${s.shopImgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600'}" class="h-28 sm:h-36 w-full object-cover"><div class="p-3 sm:p-4"><div class="flex items-center gap-1.5"><h4 class="font-black text-xs sm:text-sm text-slate-900">${s.shopName}</h4>${isMyOwnStoreNode ? '<span class="text-[8px] bg-indigo-100 text-indigo-700 font-extrabold px-1 py-0.5 rounded uppercase tracking-wider">My Shop</span>' : ''}</div><p class="text-[11px] sm:text-xs text-slate-400">${s.ownerName} (${isMyOwnStoreNode ? 'Your Location' : dist.toFixed(1) + ' km'})</p></div></div>`;
+                const card = document.createElement('div'); card.className = `rounded-3xl overflow-hidden border flex flex-col shadow-xs relative ${isMyOwnStoreNode ? 'border-indigo-400 bg-indigo-50/20 ring-4 ring-indigo-500/5' : 'bg-white border-slate-100'}`;
+                let editBtnMarkup = isMyOwnStoreNode ? `<button class="btn-trigger-edit-shop absolute top-3 right-3 z-20 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] px-3 py-1.5 rounded-xl transition shadow cursor-pointer" data-uid="${s.uid}">Edit Inventory</button>` : '';
+                card.innerHTML = `${editBtnMarkup}<div class="shop-card-clickable-area cursor-pointer" data-uid="${s.uid}"><img src="${s.shopImgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600'}" class="h-36 w-full object-cover"><div class="p-4"><div class="flex items-center gap-1.5"><h4 class="font-black text-sm text-slate-900">${s.shopName}</h4>${isMyOwnStoreNode ? '<span class="text-[9px] bg-indigo-100 text-indigo-700 font-extrabold px-1.5 py-0.5 rounded-md uppercase tracking-wider">My Shop</span>' : ''}</div><p class="text-xs text-slate-400">${s.ownerName} (${isMyOwnStoreNode ? 'Your Location Center' : dist.toFixed(1) + ' km away'})</p></div></div>`;
                 feed.appendChild(card);
             });
             document.querySelectorAll('.shop-card-clickable-area').forEach(area => area.onclick = () => openShopDetailsModal(snapshot.val()[area.getAttribute('data-uid')]));
@@ -480,23 +478,24 @@
             const grid = document.getElementById('modal-items-grid'); grid.innerHTML = "";
             
             currentlyOpenShopObject.items.forEach((item, index) => {
-                const div = document.createElement('div'); div.className = "bg-slate-50 rounded-2xl p-2.5 border border-slate-100 flex flex-col justify-between space-y-2";
+                const div = document.createElement('div'); div.className = "bg-slate-50 rounded-2xl p-3 border border-slate-100 flex flex-col justify-between space-y-2";
                 
                 const cartMatch = activeCart.find(i => i.title === item.title && i.shopUid === currentlyOpenShopObject.uid);
                 let buttonInteractiveMarkup = "";
 
+                // --- INLINE - AND + QUANTITY QUANTITY SELECTOR GATES ---
                 if (cartMatch) {
                     buttonInteractiveMarkup = `
                         <div class="flex items-center justify-between bg-slate-900 rounded-xl p-1 text-white text-xs font-black">
-                            <button class="px-2.5 py-1 bg-slate-800 rounded-lg hover:bg-slate-700 btn-modal-minus" data-idx="${index}" data-title="${item.title}">-</button>
-                            <span class="font-mono text-center min-w-[16px]">${cartMatch.qty}</span>
-                            <button class="px-2.5 py-1 bg-slate-800 rounded-lg hover:bg-slate-700 btn-modal-plus" data-idx="${index}" data-title="${item.title}">+</button>
+                            <button class="px-3 py-1 bg-slate-800 rounded-lg hover:bg-slate-700 btn-modal-minus" data-idx="${index}" data-title="${item.title}">-</button>
+                            <span class="font-mono text-center min-w-[20px]">${cartMatch.qty}</span>
+                            <button class="px-3 py-1 bg-slate-800 rounded-lg hover:bg-slate-700 btn-modal-plus" data-idx="${index}" data-title="${item.title}">+</button>
                         </div>`;
                 } else {
                     buttonInteractiveMarkup = `<button class="btn-add-to-cart bg-slate-900 text-white text-[10px] font-black py-2 rounded-xl uppercase tracking-wider cursor-pointer shadow-xs w-full" data-shopuid="${currentlyOpenShopObject.uid}" data-shopname="${currentlyOpenShopObject.shopName}" data-title="${item.title}" data-price="${item.price}">Add to Basket</button> `;
                 }
 
-                div.innerHTML = `<img src="${item.imgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300'}" class="h-20 sm:h-24 w-full object-cover rounded-xl"><div class="flex justify-between items-center text-xs font-bold"><span class="truncate">${item.title}</span><span class="text-blue-600">₹${item.price}</span></div><div class="w-full">${buttonInteractiveMarkup}</div>`;
+                div.innerHTML = `<img src="${item.imgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300'}" class="h-24 w-full object-cover rounded-xl"><div class="flex justify-between items-center text-xs font-bold"><span class="truncate">${item.title}</span><span class="text-blue-600">₹${item.price}</span></div><div class="w-full">${buttonInteractiveMarkup}</div>`;
                 grid.appendChild(div);
             });
 
@@ -538,24 +537,17 @@
         }
 
         function initializeCartCheckoutDeliveryMap() {
-            // Increased the timeout layout delay slightly to ensure DOM dimensions compute fully
             setTimeout(() => {
                 if (!mapCartCheckout) {
                     mapCartCheckout = L.map('cart-checkout-map').setView([centerLat, centerLng], 16);
                     L.tileLayer(mapTileProviderUrl).addTo(mapCartCheckout);
                     markerCartCheckout = L.marker([centerLat, centerLng]).addTo(mapCartCheckout);
                     document.getElementById('cart-selected-coords').value = `${centerLat}, ${centerLng}`;
-                    mapCartCheckout.on('click', (e) => { 
-                        markerCartCheckout.setLatLng(e.latlng); 
-                        document.getElementById('cart-selected-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; 
-                    });
+                    mapCartCheckout.on('click', (e) => { markerCartCheckout.setLatLng(e.latlng); document.getElementById('cart-selected-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });
                 } else {
-                    mapCartCheckout.setView([centerLat, centerLng], 16); 
-                    markerCartCheckout.setLatLng([centerLat, centerLng]); 
+                    mapCartCheckout.setView([centerLat, centerLng], 16); markerCartCheckout.setLatLng([centerLat, centerLng]); mapCartCheckout.invalidateSize();
                 }
-                // Crucial step: Forces Leaflet to recalibrate rendering bounds within the open modal framework
-                mapCartCheckout.invalidateSize();
-            }, 300);
+            }, 250);
         }
 
         function addItemToCartArray(title, price, originShopUid, originShopName) {
@@ -573,7 +565,7 @@
             const totalQty = activeCart.reduce((sum, item) => sum + item.qty, 0);
             const badge = document.getElementById('cart-floating-badge');
             badge.innerText = totalQty;
-            badge.className = totalQty > 0 ? "absolute -top-1 -right-1 bg-red-500 text-white font-black text-[9px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-100 transition-transform duration-200" : "scale-0 hidden";
+            badge.className = totalQty > 0 ? "absolute -top-1 -right-1 bg-red-500 text-white font-black text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-100 transition-transform duration-200" : "scale-0 hidden";
         }
 
         function renderCartInterfaceView() {
@@ -583,7 +575,7 @@
             activeCart.forEach((item, index) => {
                 const cost = item.price * item.qty; total += cost;
                 const row = document.createElement('div'); row.className = "py-2.5 text-xs text-slate-700 border-b border-slate-100";
-                row.innerHTML = `<div class="flex justify-between items-start font-medium"><div><span class="font-bold text-slate-900">${item.title}</span><p class="text-[9px] text-slate-400 font-sans mt-0.5">From: ${item.shopName}</p></div><span class="font-mono font-bold text-slate-900">₹${cost}</span></div><div class="flex items-center space-x-2 mt-1.5"><button class="btn-cart-minus bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black cursor-pointer" data-idx="${index}">-</button><span class="font-mono font-bold">${item.qty}</span><button class="btn-cart-plus bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black cursor-pointer" data-idx="${index}">+</button></div>`;
+                row.innerHTML = `<div class="flex justify-between items-start font-medium"><div><span class="font-bold text-slate-900">${item.title}</span><p class="text-[10px] text-slate-400 font-sans mt-0.5">From: ${item.shopName}</p></div><span class="font-mono font-bold text-slate-900">₹${cost}</span></div><div class="flex items-center space-x-2 mt-1.5"><button class="btn-cart-minus bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black cursor-pointer" data-idx="${index}">-</button><span class="font-mono font-bold">${item.qty}</span><button class="btn-cart-plus bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black cursor-pointer" data-idx="${index}">+</button></div>`;
                 wrap.appendChild(row);
             });
             document.getElementById('cart-grand-total').innerText = `₹${total}`;

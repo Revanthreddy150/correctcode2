@@ -8,180 +8,146 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        .map-normal-size {
-            height: 10rem;
-            width: 100%;
-            border-radius: 0.75rem;
-            transition: all 0.3s ease;
-        }
-        .map-fullscreen-size {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            z-index: 150 !important;
-            border-radius: 0rem !important;
-        }
+        .map-normal-size { height: 9rem; width: 100%; border-radius: 0.75rem; }
+        .map-fullscreen-size { position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 350 !important; border-radius: 0rem !important; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 p-2 sm:p-4 font-sans min-h-screen relative pb-24">
 
     <div class="max-w-xl mx-auto mb-4 sm:mb-6">
         <div class="flex items-center bg-white p-1 rounded-full shadow-sm border border-slate-200/60">
-            
-            <button id="tab-grocery-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black">
-                <span class="text-lg sm:text-xl mb-0.5">🛒</span>
+            <button id="tab-grocery-btn" class="flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all cursor-pointer text-blue-600 bg-blue-50 font-black">
+                <span class="text-lg mb-0.5">🛒</span>
                 <span class="text-[10px] sm:text-xs tracking-wide">Grocery</span>
             </button>
-            
-            <button id="tab-helps-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
-                <span class="text-lg sm:text-xl mb-0.5">🆘</span>
-                <span class="text-[10px] sm:text-xs tracking-wide">Helps</span>
+            <button id="tab-helps-btn" class="flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
+                <span class="text-lg mb-0.5">🆘</span>
+                <span class="text-[10px] sm:text-xs tracking-wide">Helps Feed</span>
             </button>
-            
-            <button id="tab-orders-btn" class="flex-1 flex flex-col items-center justify-center py-1.5 sm:py-2.5 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
-                <span class="text-lg sm:text-xl mb-0.5">📦</span>
+            <button id="tab-orders-btn" class="flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all cursor-pointer text-slate-400 hover:text-slate-600 font-bold">
+                <span class="text-lg mb-0.5">📦</span>
                 <span class="text-[10px] sm:text-xs tracking-wide">Orders</span>
             </button>
-
         </div>
     </div>
 
-    <div id="view-grocery" class="space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:grid-cols-3 sm:gap-6"></div></div>
-    <div id="view-helps" class="hidden space-y-4"><div id="helps-feed-output" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+    <div id="view-grocery" class="space-y-4"><div id="grocery-feed-output" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div></div>
+    
+    <div id="view-helps" class="hidden space-y-4">
+        <div class="grid grid-cols-3 gap-2 max-w-md mx-auto bg-white p-1 rounded-xl border border-slate-100 shadow-sm text-center font-bold text-[11px] sm:text-xs">
+            <button id="btn-subhelp-med" class="py-2 rounded-lg bg-blue-600 text-white cursor-pointer">💊 Medicines</button>
+            <button id="btn-subhelp-parcel" class="py-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 cursor-pointer">📦 Parcels</button>
+            <button id="btn-subhelp-assist" class="py-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 cursor-pointer">🤝 Assistant</button>
+        </div>
+        <div id="helps-feed-output" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2"></div>
+    </div>
     
     <div id="view-orders" class="hidden space-y-4">
         <h3 class="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">My Placed Assistance Calls & Orders Feed</h3>
         <div id="orders-feed-output" class="space-y-3"></div>
     </div>
 
-    <div id="center-toast-overlay" class="hidden fixed inset-0 z-[250] pointer-events-none flex items-center justify-center p-4">
-        <div id="center-toast-box" class="bg-slate-900/95 text-white backdrop-blur-md font-bold text-center px-4 py-3 sm:px-6 sm:py-4 rounded-2xl shadow-2xl max-w-xs sm:max-w-md transform transition-all duration-300 scale-95 opacity-0 flex flex-col items-center gap-2 border border-white/10">
-            <span id="center-toast-icon" class="text-2xl sm:text-3xl">✨</span>
+    <div id="action-modal-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-2">
+        <div class="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-lg shadow-2xl border max-h-[85vh] overflow-y-auto relative">
+            <button id="btn-close-action-modal" class="absolute top-3 right-3 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+            
+            <div id="form-help-med-block" class="hidden space-y-3">
+                <div class="flex items-center gap-1.5 border-b pb-2"><span class="text-lg">💊</span><h3 class="text-xs sm:text-sm font-black text-slate-800 uppercase">Order Medicines to Your Doorstep</h3></div>
+                <input type="text" id="med-name" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="Patient Full Name">
+                <input type="tel" id="med-phone" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" placeholder="Contact Phone Number">
+                <div id="trigger-med-map-fs" class="h-20 bg-blue-50 border border-dashed border-blue-300 rounded-xl flex flex-col items-center justify-center text-center p-2 cursor-pointer">
+                    <span class="text-xs font-bold text-blue-700">📍 Tap to Pinpoint Home Coordinates (Fullscreen)</span>
+                </div>
+                <input type="text" id="med-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center" placeholder="Awaiting map placement...">
+                <button id="btn-submit-med-help" class="w-full bg-blue-600 text-white text-xs font-bold py-2.5 rounded-xl">Publish Medicine Request</button>
+            </div>
+
+            <div id="form-help-parcel-block" class="hidden space-y-3">
+                <div class="flex items-center gap-1.5 border-b pb-2"><span class="text-lg">📦</span><h3 class="text-xs sm:text-sm font-black text-slate-800 uppercase">Send Parcels & Courier Run</h3></div>
+                <input type="text" id="parcel-sender-name" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="Sender Full Name">
+                <input type="tel" id="parcel-sender-phone" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" placeholder="Sender Contact Number">
+                <input type="text" id="parcel-rec-name" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="Receiver Full Name">
+                <input type="tel" id="parcel-rec-phone" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" placeholder="Receiver Contact Number">
+                
+                <div id="trigger-parcel-pickup-map" class="h-16 bg-amber-50 border border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center text-center p-2 cursor-pointer">
+                    <span class="text-xs font-bold text-amber-700">🗺️ Pinpoint Pickup Point (Map 1)</span>
+                </div>
+                <input type="text" id="parcel-pickup-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono rounded-lg text-center" placeholder="Pickup Coordinates">
+
+                <div id="trigger-parcel-drop-map" class="h-16 bg-emerald-50 border border-dashed border-emerald-300 rounded-xl flex flex-col items-center justify-center text-center p-2 cursor-pointer">
+                    <span class="text-xs font-bold text-emerald-700">🗺️ Pinpoint Drop Destination (Map 2)</span>
+                </div>
+                <input type="text" id="parcel-drop-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono rounded-lg text-center" placeholder="Drop Coordinates">
+                <button id="btn-submit-parcel-help" class="w-full bg-slate-900 text-white text-xs font-bold py-2.5 rounded-xl">Deploy Parcel Request</button>
+            </div>
+
+            <div id="form-help-assist-block" class="hidden space-y-3">
+                <div class="flex items-center gap-1.5 border-b pb-2"><span class="text-lg">🤝</span><h3 class="text-xs sm:text-sm font-black text-slate-800 uppercase">Hire On-Demand Personal Assistant</h3></div>
+                <input type="text" id="assist-name" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="Your Full Name">
+                <input type="tel" id="assist-phone" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" placeholder="Contact Contact Phone">
+                <div id="trigger-assist-map-fs" class="h-20 bg-indigo-50 border border-dashed border-indigo-300 rounded-xl flex flex-col items-center justify-center text-center p-2 cursor-pointer">
+                    <span class="text-xs font-bold text-indigo-700">📍 Select Work Target Address Spot</span>
+                </div>
+                <input type="text" id="assist-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center" placeholder="Assistant target spot">
+                <textarea id="assist-task-desc" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs h-16" placeholder="Write exactly what help or task parameters you need executed..."></textarea>
+                <button id="btn-submit-assist-help" class="w-full bg-indigo-600 text-white text-xs font-bold py-2.5 rounded-xl">Broadcast Assistant Request</button>
+            </div>
+
+            <div id="form-shop-block" class="hidden space-y-3">
+                <h4 id="action-shop-title-label" class="text-xs font-black text-slate-800 uppercase tracking-wider">Store Registration Node</h4>
+                <input type="text" id="shop-name" class="w-full p-2 bg-slate-50 border rounded-xl text-xs font-bold" placeholder="Store Title Name">
+                <div id="trigger-shop-map-fs" class="h-20 bg-emerald-50 border border-dashed border-emerald-300 rounded-xl flex flex-col items-center justify-center text-center p-2 cursor-pointer">
+                    <span class="text-xs font-bold text-emerald-700">🏬 Tap to Open Fullscreen Map Position Setter</span>
+                </div>
+                <input type="text" id="shop-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center">
+                <div class="border p-2.5 rounded-xl bg-slate-50 space-y-2">
+                    <div class="flex gap-2"><input type="text" id="item-title" class="flex-1 p-2 bg-white border rounded-lg text-xs" placeholder="Item Name"><input type="text" id="item-price" class="w-20 p-2 bg-white border rounded-lg text-xs text-center" placeholder="₹180"><button id="btn-add-subitem" class="bg-slate-800 text-white px-2.5 rounded-lg">+</button></div>
+                    <ul id="added-items-list" class="text-xs space-y-1 max-h-24 overflow-y-auto"></ul>
+                </div>
+                <button id="btn-submit-shop" class="w-full bg-emerald-600 text-white text-xs font-bold py-2 rounded-xl">Submit Application</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="center-toast-overlay" class="hidden fixed inset-0 z-[400] pointer-events-none flex items-center justify-center p-4">
+        <div id="center-toast-box" class="bg-slate-900/95 text-white font-bold text-center px-6 py-4 rounded-2xl shadow-2xl max-w-md transform transition-all duration-300 scale-95 opacity-0 flex flex-col items-center gap-1.5 border border-white/10">
+            <span id="center-toast-icon" class="text-2xl">✨</span>
             <p id="center-toast-text" class="text-xs sm:text-sm leading-relaxed"></p>
         </div>
     </div>
 
-    <div id="success-tick-overlay" class="hidden fixed inset-0 bg-slate-900/70 z-[200] flex flex-col items-center justify-center animate-fade-in">
-        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-xs mx-4">
-            <div class="w-14 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-black mb-4">✓</div>
-            <h4 class="text-lg sm:text-xl font-black text-slate-900">Order Placed!</h4>
-            <p class="text-xs text-slate-500 mt-1 leading-relaxed">Your order has been logged. Checking for local delivery agents near your range node coordinates...</p>
-        </div>
-    </div>
-
-    <div id="shop-pending-overlay" class="hidden fixed inset-0 bg-slate-900/70 z-[200] flex flex-col items-center justify-center">
-        <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center max-w-md mx-4 border border-slate-100">
-            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl sm:text-3xl mb-4">⏳</div>
-            <h4 class="text-lg sm:text-xl font-black text-slate-900">Verification Request Received</h4>
-            <p class="text-xs text-slate-600 mt-2 leading-relaxed font-medium">It will take up to <b>24 hours</b> to verify and approve your shop. Please wait, our customer support agent will call and verify your credentials shortly.</p>
-            <button onclick="document.getElementById('shop-pending-overlay').classList.add('hidden')" class="mt-5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-6 py-2.5 rounded-xl transition cursor-pointer">Understood</button>
-        </div>
-    </div>
-
-    <div class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 flex items-center space-x-2 sm:space-x-3 z-40">
-        <button id="btn-floating-cart" class="w-12 h-12 sm:w-14 sm:h-14 bg-slate-900 text-white rounded-full text-lg sm:text-xl shadow-xl flex items-center justify-center relative cursor-pointer group hover:scale-105 transition-all">
-            🛒
-            <span id="cart-floating-badge" class="absolute -top-1 -right-1 bg-red-500 text-white font-black text-[9px] sm:text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-0 transition-transform duration-200">0</span>
-        </button>
-        <button id="btn-floating-action" class="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-full text-xl sm:text-2xl font-black shadow-xl flex items-center justify-center cursor-pointer hover:scale-105 transition-all">+</button>
-    </div>
-
-    <div id="fullscreen-map-wrapper" class="hidden fixed inset-0 bg-slate-950 z-[300] flex flex-col">
-        <div class="bg-white p-3 sm:p-4 border-b flex justify-between items-center shadow relative z-10">
-            <div>
-                <h3 class="font-black text-slate-900 text-xs sm:text-sm flex items-center gap-1.5">📍 Tap to Confirm Location</h3>
-                <p class="text-[9px] sm:text-[10px] text-slate-400 mt-0.5">Drag map or click precise target layout point</p>
-            </div>
-            <button id="btn-close-fs-map" class="bg-slate-900 text-white font-bold text-[11px] sm:text-xs px-3 sm:px-4 py-2 rounded-xl hover:bg-slate-800 cursor-pointer shadow">Confirm Location</button>
+    <div id="fullscreen-map-wrapper" class="hidden fixed inset-0 bg-slate-950 z-[350] flex flex-col">
+        <div class="bg-white p-3 border-b flex justify-between items-center shadow relative z-10">
+            <div><h3 class="font-black text-slate-900 text-xs sm:text-sm">📍 Tap Precise Target Grid Spot</h3></div>
+            <button id="btn-close-fs-map" class="bg-slate-900 text-white font-bold text-[11px] px-4 py-2 rounded-xl">Save Point Map Coordinates</button>
         </div>
         <div class="flex-grow w-full h-full bg-slate-200" id="fs-map-canvas"></div>
     </div>
 
-    <div id="shop-details-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[50] flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-3xl h-[80vh] sm:h-[75vh] shadow-2xl relative flex flex-col">
-            <button id="btn-close-shop-modal" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
-            <div class="border-b pb-2 mb-3"><h3 id="modal-shop-name" class="font-black text-slate-900 text-lg sm:text-xl">Shop Items</h3><p id="modal-shop-meta" class="text-[11px] sm:text-xs text-slate-400"></p></div>
+    <div id="shop-details-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[50] flex items-center justify-center p-2">
+        <div class="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-3xl h-[75vh] shadow-2xl relative flex flex-col">
+            <button id="btn-close-shop-modal" class="absolute top-3 right-3 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+            <div class="border-b pb-2 mb-3"><h3 id="modal-shop-name" class="font-black text-slate-900 text-lg">Shop Items</h3><p id="modal-shop-meta" class="text-xs text-slate-400"></p></div>
             <div id="modal-items-grid" class="flex-grow overflow-y-auto space-y-3 grid grid-cols-1 sm:grid-cols-2 gap-3 content-start"></div>
         </div>
     </div>
 
-    <div id="cart-checkout-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[60] flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-md h-[90vh] sm:h-[85vh] shadow-2xl relative flex flex-col justify-between">
-            <button id="btn-close-cart-modal" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
-            <div class="flex-grow overflow-y-auto pr-1 space-y-3 min-h-0">
-                <h4 class="font-black text-slate-800 text-xs sm:text-sm uppercase tracking-wider border-b pb-2">🛒 Unified Shopping Cart</h4>
+    <div id="cart-checkout-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[60] flex items-center justify-center p-2">
+        <div class="bg-white rounded-3xl p-4 w-full max-w-md h-[85vh] shadow-2xl relative flex flex-col justify-between">
+            <button id="btn-close-cart-modal" class="absolute top-3 right-3 text-slate-400 text-xl font-bold cursor-pointer">×</button>
+            <div class="flex-grow overflow-y-auto space-y-3 min-h-0">
+                <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider border-b pb-2">🛒 Basket Configuration Panel</h4>
                 <div id="cart-items-wrapper" class="space-y-2 text-xs divide-y divide-slate-100"></div>
-                
                 <div class="space-y-2 text-xs pt-1">
-                    <div>
-                        <label class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Confirm Phone Number</label>
-                        <input type="tel" id="cart-phone-input" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold focus:outline-blue-500 text-slate-800">
-                    </div>
-                    <div>
-                        <label class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide block mb-1">Delivery Address Destination</label>
-                        <textarea id="cart-delivery-address-input" rows="2" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-blue-500 text-slate-700" placeholder="Type text address destination..."></textarea>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wide block">Pinpoint Delivery Spot on Map</label>
-                        <div id="cart-checkout-map" class="h-24 sm:h-28 w-full bg-slate-100 rounded-xl border border-slate-200 overflow-hidden relative"></div>
-                        <input type="text" id="cart-selected-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono text-slate-500 rounded-lg text-center" placeholder="Click map to lock coordinates">
-                    </div>
+                    <input type="tel" id="cart-phone-input" class="w-full p-2 bg-slate-50 border rounded-xl font-semibold" placeholder="Confirm Contact Phone">
+                    <textarea id="cart-delivery-address-input" rows="2" class="w-full p-2 bg-slate-50 border rounded-xl" placeholder="Delivery Destination Physical Text Address..."></textarea>
+                    <div id="cart-checkout-map" class="h-24 w-full bg-slate-100 rounded-xl overflow-hidden"></div>
+                    <input type="text" id="cart-selected-coords" readonly class="w-full p-1.5 bg-slate-100 text-[9px] font-mono text-center rounded-lg" placeholder="Map coordinates lock state">
                 </div>
             </div>
-            <div class="border-t pt-2 space-y-1.5 bg-white">
+            <div class="border-t pt-2 space-y-2 bg-white">
                 <div class="flex justify-between font-black text-xs sm:text-sm text-slate-900"><span>Grand Total Bill:</span><span id="cart-grand-total">₹0</span></div>
-                <p class="text-[9px] sm:text-[10px] text-emerald-600 font-bold bg-emerald-50 p-1 rounded text-center">Payment Method: Cash on Delivery (COD) Only</p>
-                <button id="btn-checkout-cart" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-2.5 sm:py-3 rounded-xl transition cursor-pointer">Book Order (Place COD)</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="action-modal-overlay" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-2 sm:p-4">
-        <div class="bg-white rounded-3xl p-4 sm:p-6 w-full max-w-lg shadow-2xl relative border max-h-[85vh] sm:max-h-[90vh] overflow-y-auto">
-            <button id="btn-close-action-modal" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-slate-400 text-xl font-bold cursor-pointer">×</button>
-            
-            <div id="form-tab-header" class="hidden flex border-b pb-2 mb-4 space-x-4 text-sm font-bold">
-                <button id="form-help-tab" class="text-blue-600 border-b-2 border-blue-600 pb-1">Request Help</button>
-                <button id="form-shop-tab" class="text-slate-400 pb-1">Register Restaurant / Shop</button>
-            </div>
-            
-            <div id="form-help-block" class="space-y-3">
-                <div class="flex items-center gap-1.5 mb-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span><h3 class="text-xs sm:text-sm font-bold text-slate-800 uppercase tracking-wide">Request Emergency Assistance</h3></div>
-                <input type="text" id="help-fullname" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-semibold" placeholder="Your Full Name">
-                
-                <div id="trigger-help-map-fs" class="h-24 sm:h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-3 cursor-pointer transition">
-                    <span class="text-lg sm:text-xl">🚑</span>
-                    <span class="text-[11px] sm:text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>
-                    <span class="text-[9px] sm:text-[10px] text-slate-400">Required to pinpoint location coordinates</span>
-                </div>
-
-                <input type="text" id="help-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center" placeholder="Click map area block above to select coordinates">
-                <input type="tel" id="help-phone" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs" placeholder="Working Number">
-                <textarea id="help-desc" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs h-16" placeholder="Describe assistance needed..."></textarea>
-                <button id="btn-submit-help" class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-xl cursor-pointer">Post Help Request</button>
-            </div>
-            
-            <div id="form-shop-block" class="hidden space-y-3">
-                <h4 id="action-shop-title-label" class="text-xs font-black text-slate-800 uppercase tracking-wider">New Store Registration Parameters</h4>
-                <input type="text" id="shop-name" class="w-full p-2.5 bg-slate-50 border rounded-xl text-xs font-bold" placeholder="Restaurant or Shop Title Name">
-                <div id="shop-map-fields-wrapper" class="space-y-2">
-                    
-                    <div id="trigger-shop-map-fs" class="h-24 sm:h-28 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-3 cursor-pointer transition">
-                        <span class="text-lg sm:text-xl"> Macy's 🏬</span>
-                        <span class="text-[11px] sm:text-xs font-bold text-emerald-700 mt-1">Tap to Open Store Location Map Fullscreen</span>
-                        <span class="text-[9px] sm:text-[10px] text-slate-400">Required to finalize delivery ranges</span>
-                    </div>
-
-                    <input type="text" id="shop-coords" readonly class="w-full p-2 bg-slate-100 text-[10px] font-mono rounded-lg text-center" placeholder="Click map area block above to select coordinates">
-                </div>
-                <div class="border p-3 rounded-xl bg-slate-50 space-y-2">
-                    <span class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider text-slate-400 block border-b pb-1">Manage Menu Directory Items (Max 50)</span>
-                    <div class="flex gap-2"><input type="text" id="item-title" class="flex-1 p-2 bg-white border rounded-lg text-xs" placeholder="Item Name"><input type="text" id="item-price" class="w-20 p-2 bg-white border rounded-lg text-xs text-center" placeholder="₹180"><button id="btn-add-subitem" class="bg-slate-800 text-white px-3 rounded-lg font-black text-sm cursor-pointer">+</button></div>
-                    <ul id="added-items-list" class="text-xs space-y-1 max-h-32 overflow-y-auto divide-y divide-slate-100 pt-1"></ul>
-                </div>
-                <button id="btn-submit-shop" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow">Submit Application for Review</button>
+                <button id="btn-checkout-cart" class="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs py-2.5 rounded-xl">Book Order (Place COD Run)</button>
             </div>
         </div>
     </div>
@@ -205,7 +171,7 @@
         const db = getDatabase(app);
 
         const params = new URLSearchParams(window.location.search);
-        const userUid = params.get('uid') || params.get('userUid') || "Anonymous_Node"; 
+        const userUid = params.get('uid') || "Anonymous_Node"; 
         const userName = params.get('name') ? decodeURIComponent(params.get('name')) : "";
         const userAadharStatus = params.get('aadharStatus') || "Unverified";
         const centerLat = parseFloat(params.get('lat')) || 17.3850;
@@ -214,40 +180,48 @@
         const userContactPhone = params.get('phone') ? decodeURIComponent(params.get('phone')) : "";
 
         let globalFsMapInstance = null, globalFsMarkerInstance = null, targetCoordFieldId = null, currentlyOpenShopObject = null;
-        let currentShopItems = [], activeCart = [], activeCartShopUid = "Multi_Vendor", activeCartShopName = "Unified Basket Run", currentActiveViewTab = "grocery";
+        let currentShopItems = [], activeCart = [], currentActiveViewTab = "grocery", currentSubHelpViewTab = "med";
+        let liveTimerIntervalWorkers = {};
 
-        const mapTileProviderUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-
-        if(userName && document.getElementById('help-fullname')) {
-            document.getElementById('help-fullname').value = userName;
+        if(userName) {
+            document.getElementById('med-name').value = userName;
+            document.getElementById('parcel-sender-name').value = userName;
+            document.getElementById('assist-name').value = userName;
         }
-        if(userContactPhone && document.getElementById('help-phone')) {
-            document.getElementById('help-phone').value = userContactPhone;
+        if(userContactPhone) {
+            document.getElementById('med-phone').value = userContactPhone;
+            document.getElementById('parcel-sender-phone').value = userContactPhone;
+            document.getElementById('assist-phone').value = userContactPhone;
             document.getElementById('cart-phone-input').value = userContactPhone;
         }
-        if(profileSavedAddress && document.getElementById('cart-delivery-address-input')) {
-            document.getElementById('cart-delivery-address-input').value = profileSavedAddress;
-        }
+        if(profileSavedAddress) document.getElementById('cart-delivery-address-input').value = profileSavedAddress;
 
+        // Tab Channel Controller Logic
         document.getElementById('tab-grocery-btn').addEventListener('click', () => switchTab('grocery'));
         document.getElementById('tab-helps-btn').addEventListener('click', () => switchTab('helps'));
         document.getElementById('tab-orders-btn').addEventListener('click', () => switchTab('orders'));
 
-        document.getElementById('btn-floating-cart').addEventListener('click', () => {
-            document.getElementById('cart-checkout-modal').classList.remove('hidden');
-            initializeCartCheckoutDeliveryMap();
-            renderCartInterfaceView();
-        });
-        document.getElementById('btn-close-cart-modal').addEventListener('click', () => document.getElementById('cart-checkout-modal').classList.add('hidden'));
+        document.getElementById('btn-subhelp-med').addEventListener('click', () => switchSubHelpTab('med'));
+        document.getElementById('btn-subhelp-parcel').addEventListener('click', () => switchSubHelpTab('parcel'));
+        document.getElementById('btn-subhelp-assist').addEventListener('click', () => switchSubHelpTab('assist'));
 
         function switchTab(t) {
             currentActiveViewTab = t;
             ['grocery', 'helps', 'orders'].forEach(v => {
-                document.getElementById(`tab-${v}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all duration-200 cursor-pointer text-slate-400 hover:text-slate-600 font-bold";
+                document.getElementById(`tab-${v}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all cursor-pointer text-slate-400 font-bold";
                 document.getElementById(`view-${v}`).classList.add('hidden');
             });
-            document.getElementById(`tab-${t}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all duration-200 cursor-pointer text-blue-600 bg-blue-50 font-black";
+            document.getElementById(`tab-${t}-btn`).className = "flex-1 flex flex-col items-center justify-center py-2 rounded-full transition-all cursor-pointer text-blue-600 bg-blue-50 font-black";
             document.getElementById(`view-${t}`).classList.remove('hidden');
+        }
+
+        function switchSubHelpTab(st) {
+            currentSubHelpViewTab = st;
+            ['med', 'parcel', 'assist'].forEach(x => {
+                document.getElementById(`btn-subhelp-${x}`).className = "py-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 cursor-pointer";
+            });
+            document.getElementById(`btn-subhelp-${st}`).className = "py-2 rounded-lg bg-blue-600 text-white cursor-pointer";
+            triggerSynchronousHelpsFeedRenderPipeline();
         }
 
         function displayCenterScreenToast(message, emojiIcon = "✨") {
@@ -255,50 +229,48 @@
             const box = document.getElementById('center-toast-box');
             document.getElementById('center-toast-icon').innerText = emojiIcon;
             document.getElementById('center-toast-text').innerText = message;
-
             overlay.classList.remove('hidden');
-            setTimeout(() => {
-                box.classList.remove('scale-95', 'opacity-0');
-                box.classList.add('scale-100', 'opacity-100');
-            }, 10);
-
-            setTimeout(() => {
-                box.classList.remove('scale-100', 'opacity-100');
-                box.classList.add('scale-95', 'opacity-0');
-                setTimeout(() => { overlay.classList.add('hidden'); }, 300);
-            }, 3000);
+            setTimeout(() => { box.classList.remove('scale-95', 'opacity-0'); box.classList.add('scale-100', 'opacity-100'); }, 10);
+            setTimeout(() => { box.classList.remove('scale-100', 'opacity-100'); box.classList.add('scale-95', 'opacity-0'); setTimeout(() => { overlay.classList.add('hidden'); }, 300); }, 3500);
         }
 
+        // Floating Activation Panel Trigger Engine
         document.getElementById('btn-floating-action').addEventListener('click', () => {
-            if (userAadharStatus !== "Verified") { alert(`Verification Pending. Account status state: ${userAadharStatus}`); return; }
-            
+            if (userAadharStatus !== "Verified") { alert(`Verification Checked State Exception: ${userAadharStatus}`); return; }
             document.getElementById('action-modal-overlay').classList.remove('hidden');
-            document.getElementById('form-tab-header').classList.add('hidden');
+            
+            // Context Aware Form Display Filters
+            document.getElementById('form-help-med-block').classList.add('hidden');
+            document.getElementById('form-help-parcel-block').classList.add('hidden');
+            document.getElementById('form-help-assist-block').classList.add('hidden');
+            document.getElementById('form-shop-block').classList.add('hidden');
 
             if (currentActiveViewTab === "grocery") {
-                document.getElementById('form-shop-block').classList.remove('hidden'); 
-                document.getElementById('form-help-block').classList.add('hidden');
+                document.getElementById('form-shop-block').classList.remove('hidden');
                 prepareShopFormLayoutUI("register");
-            } else {
-                document.getElementById('form-help-block').classList.remove('hidden'); 
-                document.getElementById('form-shop-block').classList.add('hidden');
+            } else if (currentActiveViewTab === "helps") {
+                if (currentSubHelpViewTab === "med") document.getElementById('form-help-med-block').classList.remove('hidden');
+                if (currentSubHelpViewTab === "parcel") document.getElementById('form-help-parcel-block').classList.remove('hidden');
+                if (currentSubHelpViewTab === "assist") document.getElementById('form-help-assist-block').classList.remove('hidden');
             }
         });
 
-        document.getElementById('trigger-help-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('help-coords'));
+        // Map Trigger Event Bindings
+        document.getElementById('trigger-med-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('med-coords'));
+        document.getElementById('trigger-parcel-pickup-map').addEventListener('click', () => openUnifiedFullscreenMapEngine('parcel-pickup-coords'));
+        document.getElementById('trigger-parcel-drop-map').addEventListener('click', () => openUnifiedFullscreenMapEngine('parcel-drop-coords'));
+        document.getElementById('trigger-assist-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('assist-coords'));
         document.getElementById('trigger-shop-map-fs').addEventListener('click', () => openUnifiedFullscreenMapEngine('shop-coords'));
         document.getElementById('btn-close-fs-map').addEventListener('click', closeUnifiedFullscreenMapEngine);
 
         function openUnifiedFullscreenMapEngine(targetInputId) {
             targetCoordFieldId = targetInputId;
             document.getElementById('fullscreen-map-wrapper').classList.remove('hidden');
-            
             setTimeout(() => {
                 if (!globalFsMapInstance) {
                     globalFsMapInstance = L.map('fs-map-canvas').setView([centerLat, centerLng], 15);
                     L.tileLayer(mapTileProviderUrl).addTo(globalFsMapInstance);
                     globalFsMarkerInstance = L.marker([centerLat, centerLng]).addTo(globalFsMapInstance);
-                    
                     globalFsMapInstance.on('click', (e) => {
                         globalFsMarkerInstance.setLatLng(e.latlng);
                         document.getElementById(targetCoordFieldId).value = `${e.latlng.lat}, ${e.latlng.lng}`;
@@ -313,155 +285,109 @@
 
         function closeUnifiedFullscreenMapEngine() {
             document.getElementById('fullscreen-map-wrapper').classList.add('hidden');
-            const targetDisplayField = document.getElementById(targetCoordFieldId);
-            
-            if(targetCoordFieldId === 'help-coords' && targetDisplayField.value) {
-                document.getElementById('trigger-help-map-fs').className = "h-24 sm:h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-3 transition";
-                document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-lg">✅</span><span class="text-xs font-bold text-green-700 mt-1">Location Node Locked</span>`;
-            } else if(targetCoordFieldId === 'shop-coords' && targetDisplayField.value) {
-                document.getElementById('trigger-shop-map-fs').className = "h-24 sm:h-28 bg-green-50 border border-green-300 rounded-xl flex flex-col items-center justify-center text-center p-3 transition";
-                document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-lg">✅</span><span class="text-xs font-bold text-green-700 mt-1">Store Coordinates Saved</span>`;
-            }
         }
 
+        document.getElementById('btn-close-action-modal').addEventListener('click', () => document.getElementById('action-modal-overlay').classList.add('hidden'));
+        document.getElementById('btn-close-shop-modal').addEventListener('click', () => { document.getElementById('shop-details-modal').classList.add('hidden'); currentlyOpenShopObject = null; });
+
+        // Submit Handles For Split Helps Categories
+        document.getElementById('btn-submit-med-help').addEventListener('click', () => {
+            const name = document.getElementById('med-name').value.trim();
+            const phone = document.getElementById('med-phone').value.trim();
+            const coords = document.getElementById('med-coords').value;
+            if(!name || !phone || !coords) return alert("Fill all parameters entirely.");
+
+            const itemRef = push(ref(db, 'helps_posts'));
+            set(itemRef, { postId: itemRef.key, uid: userUid, helpType: "Medicines", posterName: name, phone, lat: parseFloat(coords.split(',')[0]), lng: parseFloat(coords.split(',')[1]), desc: "Medicine delivery execution task request.", status: "Processing", timestamp: Date.now() })
+            .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); displayCenterScreenToast("Your help request is active. Wait for the agent to accept your help.", "⏳"); switchTab('orders'); });
+        });
+
+        document.getElementById('btn-submit-parcel-help').addEventListener('click', () => {
+            const sName = document.getElementById('parcel-sender-name').value.trim();
+            const sPhone = document.getElementById('parcel-sender-phone').value.trim();
+            const rName = document.getElementById('parcel-rec-name').value.trim();
+            const rPhone = document.getElementById('parcel-rec-phone').value.trim();
+            const pCoords = document.getElementById('parcel-pickup-coords').value;
+            const dCoords = document.getElementById('parcel-drop-coords').value;
+            if(!sName || !sPhone || !rName || !rPhone || !pCoords || !dCoords) return alert("All parcel inputs are mandatory.");
+
+            const itemRef = push(ref(db, 'helps_posts'));
+            set(itemRef, { 
+                postId: itemRef.key, uid: userUid, helpType: "Parcels", posterName: sName, phone: sPhone,
+                receiverName: rName, receiverPhone: rPhone,
+                lat: parseFloat(pCoords.split(',')[0]), lng: parseFloat(pCoords.split(',')[1]),
+                dropLat: parseFloat(dCoords.split(',')[0]), dropLng: parseFloat(dCoords.split(',')[1]),
+                desc: `Parcel run from point A to drop target destination. Recipient name: ${rName}`, status: "Processing", timestamp: Date.now() 
+            })
+            .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); displayCenterScreenToast("Your parcel delivery is active. Awaiting driver route linkage.", "📦"); switchTab('orders'); });
+        });
+
+        document.getElementById('btn-submit-assist-help').addEventListener('click', () => {
+            const name = document.getElementById('assist-name').value.trim();
+            const phone = document.getElementById('assist-phone').value.trim();
+            const coords = document.getElementById('assist-coords').value;
+            const desc = document.getElementById('assist-task-desc').value.trim();
+            if(!name || !phone || !coords || !desc) return alert("Fill parameters entirely.");
+
+            const itemRef = push(ref(db, 'helps_posts'));
+            set(itemRef, { postId: itemRef.key, uid: userUid, helpType: "Assistant", posterName: name, phone, lat: parseFloat(coords.split(',')[0]), lng: parseFloat(coords.split(',')[1]), desc, status: "Processing", timestamp: Date.now() })
+            .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); displayCenterScreenToast("Your help request is active. Wait for the agent to accept your help.", "⏳"); switchTab('orders'); });
+        });
+
+        // Ingestion & Listener Matrix Channels
+        function triggerSynchronousHelpsFeedRenderPipeline() {
+            get(ref(db, 'helps_posts')).then(snap => {
+                const output = document.getElementById('helps-feed-output'); output.innerHTML = "";
+                if(!snap.exists()) return;
+                Object.values(snap.val()).forEach(p => {
+                    const mappedType = p.helpType || "Medicines";
+                    if(mappedType.toLowerCase() !== currentSubHelpViewTab) return;
+                    if(p.status !== "Processing" && p.uid !== userUid) return;
+
+                    const div = document.createElement('div'); div.className = "p-3 bg-white rounded-xl border border-slate-100 shadow-xs text-xs space-y-1";
+                    div.innerHTML = `<div class="flex justify-between font-black"><span class="text-slate-900">${p.posterName}</span><span class="text-blue-600">[${mappedType}]</span></div><p class="text-slate-500">${p.desc}</p><span class="text-slate-400 block font-mono">Contact: ${p.phone}</span>`;
+                    output.appendChild(div);
+                });
+            });
+        }
+        onValue(ref(db, 'helps_posts'), triggerSynchronousHelpsFeedRenderPipeline);
+
+        // Shopping System Menu Builders
         function prepareShopFormLayoutUI(mode = "register", existingShopData = null) {
-            const titleLabel = document.getElementById('action-shop-title-label');
             const nameInput = document.getElementById('shop-name');
-            const mapWrapper = document.getElementById('shop-map-fields-wrapper');
             const submitBtn = document.getElementById('btn-submit-shop');
-            if(mode === "edit" && existingShopData) {
-                titleLabel.innerText = "✏ Edit Restaurant Menu Inventory";
-                nameInput.value = existingShopData.shopName; nameInput.disabled = true; mapWrapper.classList.add('hidden');
-                submitBtn.innerText = "Submit Inventory Modifications";
-                submitBtn.className = "w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow";
-                currentShopItems = [...existingShopData.items]; rebuildItemsListDOMUI();
-            } else {
-                titleLabel.innerText = "New Store Registration Parameters";
-                nameInput.value = ""; nameInput.disabled = false; mapWrapper.classList.remove('hidden');
-                submitBtn.innerText = "Submit Application for Review";
-                submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl cursor-pointer shadow";
-                currentShopItems = []; document.getElementById('added-items-list').innerHTML = "";
-                document.getElementById('trigger-shop-map-fs').className = "h-24 sm:h-28 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-3 transition";
-                document.getElementById('trigger-shop-map-fs').innerHTML = `<span class="text-lg sm:text-xl">🏬</span><span class="text-[11px] sm:text-xs font-bold text-emerald-700 mt-1">Tap to Open Store Location Map Fullscreen</span>`;
-            }
+            nameInput.value = ""; currentShopItems = []; document.getElementById('added-items-list').innerHTML = "";
         }
-
-        document.getElementById('btn-close-action-modal').addEventListener('click', () => {
-            document.getElementById('action-modal-overlay').classList.add('hidden');
-            document.getElementById('trigger-help-map-fs').className = "h-24 sm:h-28 bg-blue-50 hover:bg-blue-100 border border-blue-200 border-dashed rounded-xl flex flex-col items-center justify-center text-center p-3 transition";
-            document.getElementById('trigger-help-map-fs').innerHTML = `<span class="text-lg sm:text-xl">🚑</span><span class="text-[11px] sm:text-xs font-bold text-blue-700 mt-1">Tap to Open Tracking Map Fullscreen</span>`;
-        });
-        document.getElementById('btn-close-shop-modal').addEventListener('click', () => {
-            document.getElementById('shop-details-modal').classList.add('hidden');
-            currentlyOpenShopObject = null;
-        });
 
         document.getElementById('btn-add-subitem').addEventListener('click', () => {
             const t = document.getElementById('item-title').value.trim(); const p = document.getElementById('item-price').value.trim();
-            if (!t || !p || currentShopItems.length >= 50) return;
+            if (!t || !p) return;
             currentShopItems.push({ title: t, price: p, imgUrl: "" });
-            rebuildItemsListDOMUI();
-            document.getElementById('item-title').value = ""; document.getElementById('item-price').value = "";
-        });
-
-        function rebuildItemsListDOMUI() {
             const ul = document.getElementById('added-items-list'); ul.innerHTML = "";
             currentShopItems.forEach((item, index) => {
-                const li = document.createElement('li'); li.className = "flex justify-between items-center py-1.5 text-slate-700 font-medium";
-                li.innerHTML = `<span>${item.title} (₹${item.price})</span><button class="text-red-500 hover:text-red-700 font-bold px-1 text-xs cursor-pointer btn-remove-subitem" data-idx="${index}">Remove</button>`;
+                const li = document.createElement('li'); li.className = "flex justify-between text-slate-700 py-1 border-b text-[11px]";
+                li.innerHTML = `<span>${item.title} (₹${item.price})</span>`;
                 ul.appendChild(li);
             });
-            document.querySelectorAll('.btn-remove-subitem').forEach(b => b.onclick = () => { currentShopItems.splice(parseInt(b.getAttribute('data-idx')), 1); rebuildItemsListDOMUI(); });
-        }
-
-        document.getElementById('btn-submit-help').addEventListener('click', () => {
-            const hName = document.getElementById('help-fullname').value.trim();
-            const hPhone = document.getElementById('help-phone').value.trim();
-            const hDesc = document.getElementById('help-desc').value.trim();
-            const coordsStr = document.getElementById('help-coords').value;
-
-            if (!hName || !hPhone || !hDesc || !coordsStr) {
-                alert("Please fill out all missing details entirely.");
-                return;
-            }
-
-            const coordsSplit = coordsStr.split(',');
-            const pushHelpRef = push(ref(db, 'helps_posts'));
-            const generatedKey = pushHelpRef.key;
-
-            set(pushHelpRef, {
-                postId: generatedKey,
-                uid: userUid,
-                posterName: hName,
-                phone: hPhone,
-                desc: hDesc,
-                lat: parseFloat(coordsSplit[0].trim()),
-                lng: parseFloat(coordsSplit[1].trim()),
-                status: "Processing",
-                createdAt: Date.now()
-            })
-            .then(() => {
-                document.getElementById('help-desc').value = "";
-                document.getElementById('action-modal-overlay').classList.add('hidden');
-                
-                displayCenterScreenToast("Your help request is active. Wait for the agent to accept your help.", "⏳");
-                switchTab('orders');
-            })
-            .catch((err) => alert("Database Error: " + err.message));
+            document.getElementById('item-title').value = ""; document.getElementById('item-price').value = "";
         });
 
         document.getElementById('btn-submit-shop').addEventListener('click', () => {
             const name = document.getElementById('shop-name').value.trim();
-            if(!name || currentShopItems.length === 0) return alert("Provide a shop name and add at least one item.");
-            const isEditMode = document.getElementById('action-shop-title-label').innerText.includes("Edit");
-            if (isEditMode) {
-                get(ref(db, `approved_shops/${userUid}`)).then(snapshot => {
-                    if (snapshot.exists()) {
-                        const shopData = snapshot.val(); shopData.items = currentShopItems; shopData.status = "Pending";
-                        set(ref(db, `shop_requests/${userUid}`), shopData).then(() => {
-                            remove(ref(db, `approved_shops/${userUid}`)).then(() => {
-                                document.getElementById('action-modal-overlay').classList.add('hidden');
-                                document.getElementById('shop-pending-overlay').classList.remove('hidden');
-                            });
-                        });
-                    }
-                });
-            } else {
-                const c = document.getElementById('shop-coords').value.split(',');
-                set(ref(db, 'shop_requests/' + userUid), { uid: userUid, shopName: name, ownerName: userName, lat: parseFloat(c[0]), lng: parseFloat(c[1]), items: currentShopItems, status: "Pending", submittedAt: Date.now() })
-                .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); document.getElementById('shop-pending-overlay').classList.remove('hidden'); });
-            }
-        });
-
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; const dLat = (lat2 - lat1) * Math.PI / 180; const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-        }
-
-        onValue(ref(db, 'helps_posts'), (snapshot) => {
-            const feed = document.getElementById('helps-feed-output'); feed.innerHTML = ""; if (!snapshot.exists()) return;
-            Object.values(snapshot.val()).filter(p => p.status === "Processing" || p.uid === userUid).forEach(p => {
-                const card = document.createElement('div'); card.className = `p-4 rounded-2xl border text-xs flex flex-col space-y-1.5 ${p.uid === userUid ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-100'}`;
-                card.innerHTML = `<div class="flex justify-between font-bold"><span class="text-slate-800 text-sm">${p.posterName}</span></div><p class="text-slate-600 leading-relaxed">${p.desc}</p><span class="text-[10px] text-slate-400">Contact: ${p.phone}</span>`;
-                feed.appendChild(card);
-            });
+            if(!name || currentShopItems.length === 0) return alert("Parameters missing.");
+            const c = document.getElementById('shop-coords').value.split(',');
+            set(ref(db, 'shop_requests/' + userUid), { uid: userUid, shopName: name, ownerName: userName, lat: parseFloat(c[0]), lng: parseFloat(c[1]), items: currentShopItems, status: "Pending", submittedAt: Date.now() })
+            .then(() => { document.getElementById('action-modal-overlay').classList.add('hidden'); alert("Shop Application Under Review Node Processing Canvas Attached!"); });
         });
 
         onValue(ref(db, 'approved_shops'), (snapshot) => {
             const feed = document.getElementById('grocery-feed-output'); feed.innerHTML = ""; if (!snapshot.exists()) return;
-            const list = Object.values(snapshot.val());
-            list.sort((x, y) => (x.uid === userUid ? -1 : y.uid === userUid ? 1 : 0));
-            list.forEach(s => {
-                const dist = calculateDistance(centerLat, centerLng, s.lat, s.lng); if (dist > 10 && s.uid !== userUid) return;
-                const isMyOwnStoreNode = (s.uid === userUid);
-                const card = document.createElement('div'); card.className = `rounded-2xl sm:rounded-3xl overflow-hidden border flex flex-col shadow-xs relative ${isMyOwnStoreNode ? 'border-indigo-400 bg-indigo-50/20 ring-4 ring-indigo-500/5' : 'bg-white border-slate-100'}`;
-                let editBtnMarkup = isMyOwnStoreNode ? `<button class="btn-trigger-edit-shop absolute top-2 right-2 z-20 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg transition shadow cursor-pointer" data-uid="${s.uid}">Edit Inventory</button>` : '';
-                card.innerHTML = `${editBtnMarkup}<div class="shop-card-clickable-area cursor-pointer" data-uid="${s.uid}"><img src="${s.shopImgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600'}" class="h-28 sm:h-36 w-full object-cover"><div class="p-3 sm:p-4"><div class="flex items-center gap-1.5"><h4 class="font-black text-xs sm:text-sm text-slate-900">${s.shopName}</h4>${isMyOwnStoreNode ? '<span class="text-[8px] bg-indigo-100 text-indigo-700 font-extrabold px-1 py-0.5 rounded uppercase tracking-wider">My Shop</span>' : ''}</div><p class="text-[11px] sm:text-xs text-slate-400">${s.ownerName} (${isMyOwnStoreNode ? 'Your Location' : dist.toFixed(1) + ' km'})</p></div></div>`;
+            Object.values(snapshot.val()).forEach(s => {
+                const card = document.createElement('div'); card.className = "rounded-2xl overflow-hidden bg-white border border-slate-100 cursor-pointer shadow-xs p-3 space-y-2";
+                card.innerHTML = `<img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=300" class="h-24 w-full object-cover rounded-xl"><h4 class="font-black text-xs text-slate-900">${s.shopName}</h4><p class="text-[11px] text-slate-400">Owner Terminal: ${s.ownerName}</p>`;
+                card.onclick = () => openShopDetailsModal(s);
                 feed.appendChild(card);
             });
-            document.querySelectorAll('.shop-card-clickable-area').forEach(area => area.onclick = () => openShopDetailsModal(snapshot.val()[area.getAttribute('data-uid')]));
-            document.querySelectorAll('.btn-trigger-edit-shop').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); prepareShopFormLayoutUI("edit", snapshot.val()[btn.getAttribute('data-uid')]); document.getElementById('action-modal-overlay').classList.remove('hidden'); document.getElementById('form-shop-block').classList.remove('hidden'); document.getElementById('form-help-block').classList.add('hidden'); });
         });
 
         function openShopDetailsModal(shop) {
@@ -475,63 +401,61 @@
         function renderShopModalItemsGrid() {
             if(!currentlyOpenShopObject) return;
             const grid = document.getElementById('modal-items-grid'); grid.innerHTML = "";
-            
             currentlyOpenShopObject.items.forEach((item, index) => {
-                const div = document.createElement('div'); div.className = "bg-slate-50 rounded-2xl p-2.5 border border-slate-100 flex flex-col justify-between space-y-2";
-                
+                const div = document.createElement('div'); div.className = "bg-slate-50 rounded-2xl p-2 border border-slate-100 flex flex-col justify-between space-y-1";
                 const cartMatch = activeCart.find(i => i.title === item.title && i.shopUid === currentlyOpenShopObject.uid);
-                let buttonInteractiveMarkup = "";
-
-                if (cartMatch) {
-                    buttonInteractiveMarkup = `
-                        <div class="flex items-center justify-between bg-slate-900 rounded-xl p-1 text-white text-xs font-black">
-                            <button class="px-2.5 py-1 bg-slate-800 rounded-lg hover:bg-slate-700 btn-modal-minus" data-idx="${index}" data-title="${item.title}">-</button>
-                            <span class="font-mono text-center min-w-[16px]">${cartMatch.qty}</span>
-                            <button class="px-2.5 py-1 bg-slate-800 rounded-lg hover:bg-slate-700 btn-modal-plus" data-idx="${index}" data-title="${item.title}">+</button>
-                        </div>`;
+                let btnHtml = "";
+                if(cartMatch) {
+                    btnHtml = `<div class="flex items-center justify-between bg-slate-900 text-white rounded-xl p-1 text-xs font-black"><button class="px-2.5 py-0.5 bg-slate-850 rounded btn-m-minus" data-idx="${index}" data-title="${item.title}">-</button><span>${cartMatch.qty}</span><button class="px-2.5 py-0.5 bg-slate-850 rounded btn-m-plus" data-idx="${index}" data-title="${item.title}">+</button></div>`;
                 } else {
-                    buttonInteractiveMarkup = `<button class="btn-add-to-cart bg-slate-900 text-white text-[10px] font-black py-2 rounded-xl uppercase tracking-wider cursor-pointer shadow-xs w-full" data-shopuid="${currentlyOpenShopObject.uid}" data-shopname="${currentlyOpenShopObject.shopName}" data-title="${item.title}" data-price="${item.price}">Add to Basket</button> `;
+                    btnHtml = `<button class="btn-add-to-cart bg-slate-900 text-white text-[10px] font-black py-1.5 rounded-xl uppercase tracking-wider w-full" data-shopuid="${currentlyOpenShopObject.uid}" data-shopname="${currentlyOpenShopObject.shopName}" data-title="${item.title}" data-price="${item.price}">Add to Basket</button>`;
                 }
-
-                div.innerHTML = `<img src="${item.imgUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300'}" class="h-20 sm:h-24 w-full object-cover rounded-xl"><div class="flex justify-between items-center text-xs font-bold"><span class="truncate">${item.title}</span><span class="text-blue-600">₹${item.price}</span></div><div class="w-full">${buttonInteractiveMarkup}</div>`;
+                div.innerHTML = `<img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=200" class="h-16 w-full object-cover rounded-lg"><div class="flex justify-between items-center text-[11px] font-bold"><span class="truncate">${item.title}</span><span class="text-blue-600">₹${item.price}</span></div><div class="w-full">${btnHtml}</div>`;
                 grid.appendChild(div);
             });
 
-            document.querySelectorAll('.btn-add-to-cart').forEach(btn => {
-                btn.onclick = (e) => {
-                    const t = e.target.getAttribute('data-title');
-                    const p = e.target.getAttribute('data-price');
-                    const sUid = e.target.getAttribute('data-shopuid');
-                    const sName = e.target.getAttribute('data-shopname');
-                    addItemToCartArray(t, p, sUid, sName);
-                    
-                    displayCenterScreenToast("The item is added to the kart", "🛒");
-                    renderShopModalItemsGrid(); 
-                };
+            document.querySelectorAll('.btn-add-to-cart').forEach(b => b.onclick = (e) => {
+                addItemToCartArray(b.getAttribute('data-title'), b.getAttribute('data-price'), b.getAttribute('data-shopuid'), b.getAttribute('data-shopname'));
+                displayCenterScreenToast("The item is added to the kart", "🛒");
+                renderShopModalItemsGrid();
             });
+            document.querySelectorAll('.btn-m-minus').forEach(b => b.onclick = () => {
+                const t = b.getAttribute('data-title');
+                const idx = activeCart.findIndex(i => i.title === t && i.shopUid === currentlyOpenShopObject.uid);
+                if(idx !== -1) { if(activeCart[idx].qty > 1) activeCart[idx].qty--; else activeCart.splice(idx, 1); }
+                updateFloatingCartBadgeStateCount(); renderShopModalItemsGrid();
+            });
+            document.querySelectorAll('.btn-m-plus').forEach(b => b.onclick = () => {
+                const t = b.getAttribute('data-title');
+                const match = activeCart.find(i => i.title === t && i.shopUid === currentlyOpenShopObject.uid);
+                if(match) match.qty++; updateFloatingCartBadgeStateCount(); renderShopModalItemsGrid();
+            });
+        }
 
-            document.querySelectorAll('.btn-modal-minus').forEach(btn => {
-                btn.onclick = (e) => {
-                    const t = e.target.getAttribute('data-title');
-                    const idx = activeCart.findIndex(i => i.title === t && i.shopUid === currentlyOpenShopObject.uid);
-                    if (idx !== -1) {
-                        if (activeCart[idx].qty > 1) activeCart[idx].qty--;
-                        else activeCart.splice(idx, 1);
-                    }
-                    updateFloatingCartBadgeStateCount();
-                    renderShopModalItemsGrid();
-                };
-            });
+        function addItemToCartArray(title, price, originShopUid, originShopName) {
+            const numericPrice = parseInt(price.replace(/[^0-9]/g, '')) || 0;
+            const existing = activeCart.find(i => i.title === title && i.shopUid === originShopUid);
+            if(existing) existing.qty++; else activeCart.push({ title, price: numericPrice, qty: 1, shopUid: originShopUid, shopName: originShopName });
+            updateFloatingCartBadgeStateCount();
+        }
 
-            document.querySelectorAll('.btn-modal-plus').forEach(btn => {
-                btn.onclick = (e) => {
-                    const t = e.target.getAttribute('data-title');
-                    const match = activeCart.find(i => i.title === t && i.shopUid === currentlyOpenShopObject.uid);
-                    if (match) match.qty++;
-                    updateFloatingCartBadgeStateCount();
-                    renderShopModalItemsGrid();
-                };
+        function updateFloatingCartBadgeStateCount() {
+            const totalQty = activeCart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cart-floating-badge');
+            badge.innerText = totalQty; badge.className = totalQty > 0 ? "absolute -top-1 -right-1 bg-red-500 text-white font-black text-[9px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-100" : "scale-0 hidden";
+        }
+
+        function renderCartInterfaceView() {
+            const wrap = document.getElementById('cart-items-wrapper'); wrap.innerHTML = "";
+            if (activeCart.length === 0) { wrap.innerHTML = `<p class="text-slate-400 text-center py-4">Your cart is empty.</p>`; document.getElementById('cart-grand-total').innerText = "₹0"; return; }
+            let total = 0;
+            activeCart.forEach((item, index) => {
+                const cost = item.price * item.qty; total += cost;
+                const row = document.createElement('div'); row.className = "py-1.5 text-xs text-slate-700 border-b flex justify-between items-center";
+                row.innerHTML = `<div><span class="font-bold text-slate-900">${item.title}</span><p class="text-[9px] text-slate-400">Qty: ${item.qty}</p></div><span class="font-mono font-bold">₹${cost}</span>`;
+                wrap.appendChild(row);
             });
+            document.getElementById('cart-grand-total').innerText = `₹${total}`;
         }
 
         function initializeCartCheckoutDeliveryMap() {
@@ -542,129 +466,98 @@
                     markerCartCheckout = L.marker([centerLat, centerLng]).addTo(mapCartCheckout);
                     document.getElementById('cart-selected-coords').value = `${centerLat}, ${centerLng}`;
                     mapCartCheckout.on('click', (e) => { markerCartCheckout.setLatLng(e.latlng); document.getElementById('cart-selected-coords').value = `${e.latlng.lat}, ${e.latlng.lng}`; });
-                } else {
-                    mapCartCheckout.setView([centerLat, centerLng], 16); markerCartCheckout.setLatLng([centerLat, centerLng]); mapCartCheckout.invalidateSize();
                 }
             }, 250);
         }
 
-        function addItemToCartArray(title, price, originShopUid, originShopName) {
-            const numericPrice = parseInt(price.replace(/[^0-9]/g, '')) || 0;
-            const existing = activeCart.find(i => i.title === title && i.shopUid === originShopUid);
-            if (existing) { 
-                existing.qty++; 
-            } else { 
-                activeCart.push({ title, price: numericPrice, qty: 1, shopUid: originShopUid, shopName: originShopName }); 
-            }
-            updateFloatingCartBadgeStateCount();
-        }
+        document.getElementById('btn-checkout-cart').addEventListener('click', () => {
+            if (activeCart.length === 0) return;
+            const dest = document.getElementById('cart-delivery-address-input').value.trim();
+            const phone = document.getElementById('cart-phone-input').value.trim();
+            const coords = document.getElementById('cart-selected-coords').value.split(',');
+            if(!dest || !phone || coords.length !== 2) return alert("Complete parameters layout validation rules.");
 
-        function updateFloatingCartBadgeStateCount() {
-            const totalQty = activeCart.reduce((sum, item) => sum + item.qty, 0);
-            const badge = document.getElementById('cart-floating-badge');
-            badge.innerText = totalQty;
-            badge.className = totalQty > 0 ? "absolute -top-1 -right-1 bg-red-500 text-white font-black text-[9px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center border-2 border-white scale-100 transition-transform duration-200" : "scale-0 hidden";
-        }
-
-        function renderCartInterfaceView() {
-            const wrap = document.getElementById('cart-items-wrapper'); wrap.innerHTML = "";
-            if (activeCart.length === 0) { wrap.innerHTML = `<p class="text-slate-400 text-center py-8">Your cart is empty.</p>`; document.getElementById('cart-grand-total').innerText = "₹0"; return; }
-            let total = 0;
-            activeCart.forEach((item, index) => {
-                const cost = item.price * item.qty; total += cost;
-                const row = document.createElement('div'); row.className = "py-2.5 text-xs text-slate-700 border-b border-slate-100";
-                row.innerHTML = `<div class="flex justify-between items-start font-medium"><div><span class="font-bold text-slate-900">${item.title}</span><p class="text-[9px] text-slate-400 font-sans mt-0.5">From: ${item.shopName}</p></div><span class="font-mono font-bold text-slate-900">₹${cost}</span></div><div class="flex items-center space-x-2 mt-1.5"><button class="btn-cart-minus bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black cursor-pointer" data-idx="${index}">-</button><span class="font-mono font-bold">${item.qty}</span><button class="btn-cart-plus bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black cursor-pointer" data-idx="${index}">+</button></div>`;
-                wrap.appendChild(row);
-            });
-            document.getElementById('cart-grand-total').innerText = `₹${total}`;
-            document.querySelectorAll('.btn-cart-minus').forEach(b => b.onclick = (e) => { const idx = parseInt(e.target.getAttribute('data-idx')); if(activeCart[idx].qty > 1) activeCart[idx].qty--; else activeCart.splice(idx, 1); renderCartInterfaceView(); updateFloatingCartBadgeStateCount(); if(currentlyOpenShopObject) renderShopModalItemsGrid(); });
-            document.querySelectorAll('.btn-cart-plus').forEach(b => b.onclick = (e) => { activeCart[parseInt(e.target.getAttribute('data-idx'))].qty++; renderCartInterfaceView(); updateFloatingCartBadgeStateCount(); if(currentlyOpenShopObject) renderShopModalItemsGrid(); });
-        }
+            const pushOrderRef = push(ref(db, 'orders'));
+            set(pushOrderRef, { orderId: pushOrderRef.key, uid: userUid, userName, items: activeCart, totalBill: document.getElementById('cart-grand-total').innerText, status: "Processing", deliveryAddress: dest, userPhone: phone, lat: parseFloat(coords[0]), lng: parseFloat(coords[1]), timestamp: Date.now() })
+            .then(() => { activeCart = []; updateFloatingCartBadgeStateCount(); document.getElementById('cart-checkout-modal').classList.add('hidden'); triggerAnimatedGreenSuccessTickOverlayGate(); });
+        });
 
         function triggerAnimatedGreenSuccessTickOverlayGate() {
-            const overlay = document.getElementById('success-tick-overlay');
-            overlay.classList.remove('hidden');
+            const overlay = document.getElementById('success-tick-overlay'); overlay.classList.remove('hidden');
             setTimeout(() => { overlay.classList.add('hidden'); switchTab('orders'); }, 3000);
         }
 
-        document.getElementById('btn-checkout-cart').addEventListener('click', () => {
-            if (activeCart.length === 0) return;
-            const deliveryDestinationStr = document.getElementById('cart-delivery-address-input').value.trim();
-            const contactPhone = document.getElementById('cart-phone-input').value.trim();
-            const selectedCoords = document.getElementById('cart-selected-coords').value.split(',');
-            if(!deliveryDestinationStr || !contactPhone || selectedCoords.length !== 2) { alert("Fill parameters explicitly."); return; }
-
-            const totalBill = document.getElementById('cart-grand-total').innerText;
-            const pushOrderRef = push(ref(db, 'orders'));
-            
-            set(pushOrderRef, { 
-                orderId: pushOrderRef.key, uid: userUid, userName, 
-                shopUid: activeCartShopUid, shopName: activeCartShopName, 
-                items: activeCart, totalBill, status: "Processing", 
-                deliveryAddress: deliveryDestinationStr, userPhone: contactPhone, 
-                lat: parseFloat(selectedCoords[0]), lng: parseFloat(selectedCoords[1]), 
-                timestamp: Date.now() 
-            })
-            .then(() => { 
-                activeCart = []; updateFloatingCartBadgeStateCount(); 
-                document.getElementById('cart-checkout-modal').classList.add('hidden'); 
-                triggerAnimatedGreenSuccessTickOverlayGate(); 
-            });
-        });
-
+        // Shared Orders/Helps Realtime Tracker Progress Boards Pipelines
         const updateOrdersAndHelpsUnifiedFeedOutput = () => {
             const container = document.getElementById('orders-feed-output'); container.innerHTML = "";
             let itemsPool = [];
+            
             get(ref(db, 'orders')).then(ordersSnap => {
                 if (ordersSnap.exists()) { Object.values(ordersSnap.val()).filter(o => o.uid === userUid).forEach(order => itemsPool.push({ ...order, _type: 'Order' })); }
                 get(ref(db, 'helps_posts')).then(helpsSnap => {
                     if (helpsSnap.exists()) { Object.values(helpsSnap.val()).filter(h => h.uid === userUid).forEach(helpRun => itemsPool.push({ ...helpRun, _type: 'Help' })); }
+                    if(itemsPool.length === 0) { container.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">No ongoing assignments logged.</p>`; return; }
                     
-                    if(itemsPool.length === 0) {
-                        container.innerHTML = `<p class="text-slate-400 text-center py-6 text-xs">No entries logged.</p>`;
-                        return;
-                    }
-                    
-                    itemsPool.sort((a, b) => {
-                        const scoreA = (a.status === 'Picked Up' ? 3 : a.status === 'Approved' ? 2 : a.status === 'Processing' ? 1 : 0);
-                        const scoreB = (b.status === 'Picked Up' ? 3 : b.status === 'Approved' ? 2 : b.status === 'Processing' ? 1 : 0);
-                        return scoreB - scoreA;
-                    });
+                    itemsPool.forEach(item => {
+                        const card = document.createElement('div');
+                        const isTaskOngoing = (item.status === "Approved" || item.status === "Picked Up" || item.status === "Wait For Confirmation" || item.status === "On The Way" || item.status === "Parcel Sended Done" || item.status === "Confirmed" || item.status === "You Get A Call In 30 Min" || item.status === "Work Started");
+                        card.className = `p-3 rounded-xl border text-xs flex flex-col space-y-1 bg-white ${isTaskOngoing ? 'border-blue-500 ring-1 ring-blue-500/10' : 'border-slate-100'}`;
 
-                    itemsPool.forEach(item => appendProgressCardToFeed(item, item._type, container));
+                        // Cryptographic deterministic execution for dual OTP generation rules setup
+                        let valSeed = 0; const strSeed = item.orderId || item.postId || "000000";
+                        for(let i=0; i<strSeed.length; i++) { valSeed += strSeed.charCodeAt(i); }
+                        const startOtp = String((valSeed * 1357) % 900000 + 100000);
+                        const endOtp = String((valSeed * 7531) % 900000 + 100000);
+
+                        let typeDisplayLabel = item._type === 'Order' ? "Store COD Order Run" : `Help Run [${item.helpType || 'General'}]`;
+                        let summaryString = item.items ? item.items.map(i => `${i.title} (x${i.qty})`).join(', ') : item.desc;
+
+                        // Stopwatch dynamic logic render channel blocks
+                        let timeTrackHtml = "";
+                        if(item.helpType === "Medicines" || item.helpType === "Assistant") {
+                            timeTrackHtml = `<div class="p-2 bg-slate-100 rounded font-mono text-slate-700 mt-1 flex justify-between items-center"><span>⏱️ Duration Count:</span><span class="font-bold text-blue-600" id="timer-display-${item.postId}">00:00:00</span></div>`;
+                            
+                            // Attach continuous listener loops tracking tick counts inside user side interface
+                            if(item.timerActiveSinceSeconds && item.status !== "Reached Doorstep" && item.status !== "Completed Task") {
+                                if(!liveTimerIntervalWorkers[item.postId]) {
+                                    liveTimerIntervalWorkers[item.postId] = setInterval(() => {
+                                        const totalSecsPassed = Math.floor((Date.now() - item.timerActiveSinceSeconds) / 1000);
+                                        const hrs = String(Math.floor(totalSecsPassed / 3600)).padStart(2, '0');
+                                        const mins = String(Math.floor((totalSecsPassed % 3600) / 60)).padStart(2, '0');
+                                        const secs = String(totalSecsPassed % 60).padStart(2, '0');
+                                        const labelNode = document.getElementById(`timer-display-${item.postId}`);
+                                        if(labelNode) labelNode.innerText = `${hrs}:${mins}:${secs}`;
+                                    }, 1000);
+                                }
+                            } else if (item.status === "Reached Doorstep" || item.status === "Completed Task") {
+                                clearInterval(liveTimerIntervalWorkers[item.postId]);
+                                delete liveTimerIntervalWorkers[item.postId];
+                                const finalMinutesMinsCount = item.finalBillableMinutesDuration || 0;
+                                const totalCalculatedFareNodeCost = Math.ceil(finalMinutesMinsCount / 30) * 60;
+                                timeTrackHtml = `<div class="p-2 bg-green-50 text-green-700 rounded font-mono mt-1">⏱️ Task Stopped. Total Duration: <b>${finalMinutesMinsCount} Minutes</b> | Cost: <b>₹${totalCalculatedFareNodeCost}</b></div>`;
+                            }
+                        }
+
+                        let securityOtpBlockHtml = "";
+                        if(item.helpType === "Assistant") {
+                            securityOtpBlockHtml = `
+                                <div class="p-2 bg-slate-900 text-slate-100 rounded font-mono mt-1 space-y-1">
+                                    <p class="text-[9px] text-slate-400">SECURITY VERIFICATION CREDENTIAL KEYS</p>
+                                    <div class="flex justify-between"><span>Work Start OTP:</span><b class="text-amber-400">${startOtp}</b></div>
+                                    <div class="flex justify-between"><span>Work End OTP:</span><b class="text-emerald-400">${endOtp}</b></div>
+                                </div>`;
+                        } else if(item._type === 'Order') {
+                            securityOtpBlockHtml = `<div class="p-2 bg-slate-900 text-slate-100 rounded font-mono mt-1 flex justify-between"><span>COD Unlock OTP:</span><b class="text-amber-400">${startOtp}</b></div>`;
+                        }
+
+                        let agentBlockHtml = item.agentName ? `<div class="p-2 bg-blue-50 border rounded-lg text-slate-700 text-[10px] mt-1"><p><b>Assigned Carrier Agent:</b> ${item.agentName} (📞 ${item.agentPhone})</p></div>` : '';
+
+                        card.innerHTML = `<div class="flex justify-between font-bold items-center"><span class="text-slate-900">${typeDisplayLabel}</span><span class="text-blue-600 uppercase tracking-widest text-[10px]">${item.status}</span></div><p class="text-slate-600"><b>Summary:</b> ${summaryString}</p>${timeTrackHtml}${securityOtpBlockHtml}${agentBlockHtml}`;
+                        container.appendChild(card);
+                    });
                 });
             });
         };
-
-        function appendProgressCardToFeed(obj, label, wrapperNode) {
-            const card = document.createElement('div');
-            const isOngoingTask = (obj.status === "Approved" || obj.status === "Picked Up");
-            
-            card.className = `p-4 rounded-2xl border flex flex-col space-y-2 text-xs relative transition-all duration-300 ${isOngoingTask ? 'border-blue-500 bg-gradient-to-r from-blue-50/40 to-indigo-50/20 shadow-md ring-2 ring-blue-500/10 scale-[1.01]' : 'bg-white border-slate-100'}`;
-            
-            let statusTextHtml = `<span class="text-amber-500 font-bold uppercase">${obj.status}</span>`;
-            if (obj.status === "Approved") statusTextHtml = `<span class="text-blue-600 font-extrabold uppercase tracking-wide flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping"></span>Agent Assigned</span>`;
-            else if (obj.status === "Picked Up") statusTextHtml = `<span class="text-indigo-600 font-extrabold uppercase tracking-wide flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>Agent On the Way</span>`;
-            else if (obj.status === "Delivered") statusTextHtml = `<span class="text-green-600 font-extrabold uppercase tracking-wide">Delivered Successfully</span>`;
-            
-            let summaryString = obj.items ? obj.items.map(i => `${i.title} (x${i.qty})`).join(', ') : obj.desc;
-            
-            let numericVal = 0;
-            const seedString = obj.orderId || obj.postId || "000000";
-            for(let i=0; i<seedString.length; i++) { numericVal += seedString.charCodeAt(i); }
-            const calculatedOTP = String((numericVal * 1357) % 900000 + 100000);
-
-            let otpVerificationDisplayBlockHtml = isOngoingTask ? `
-                <div class="mt-2 p-3 bg-slate-900 text-white rounded-xl flex items-center justify-between font-mono">
-                    <div><span class="text-[9px] text-slate-400 block uppercase font-sans tracking-widest">Share OTP with Agent to Verify Delivery</span><span class="text-xs font-sans text-slate-300">Code: </span><span class="text-base font-black text-amber-400 tracking-wider">${calculatedOTP}</span></div>
-                    <div class="text-[20px]">🔐</div>
-                </div>` : '';
-
-            let agentDetailsBlockHtml = obj.agentName ? `<div class="mt-2 p-2.5 bg-blue-50/80 border border-blue-100 rounded-xl text-slate-700 text-[11px] space-y-0.5"><p><b>Assigned Agent:</b> ${obj.agentName}</p><p><b>Agent Contact Phone:</b> ${obj.agentPhone || 'N/A'}</p></div>` : '';
-            
-            card.innerHTML = `<div class="flex justify-between items-center font-bold"><span class="text-sm text-slate-900">${obj.shopName || label}</span>${statusTextHtml}</div><p class="text-slate-600 font-medium"><b>Summary:</b> ${summaryString}</p><p class="text-[11px] text-slate-500"><b>Destination Location:</b> ${obj.deliveryAddress || 'Current GPS Range Pin'}</p>${otpVerificationDisplayBlockHtml}${agentDetailsBlockHtml}<div class="pt-1 text-[10px] text-slate-400 font-mono">Timestamp: ${new Date(obj.timestamp || obj.createdAt).toLocaleTimeString()}</div>`;
-            wrapperNode.appendChild(card);
-        }
 
         onValue(ref(db, 'orders'), updateOrdersAndHelpsUnifiedFeedOutput);
         onValue(ref(db, 'helps_posts'), updateOrdersAndHelpsUnifiedFeedOutput);
